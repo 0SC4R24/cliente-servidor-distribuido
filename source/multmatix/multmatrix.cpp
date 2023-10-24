@@ -1,4 +1,3 @@
-#include "../../headers/multmatix/multmatrix.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <iostream>
@@ -6,6 +5,8 @@
 #include <cstring>
 #include <sys/types.h>
 #include <unistd.h>
+
+#include "../../include/multmatix/multmatrix.h"
 
 /**
  * @brief multMatrix::multMatrix Constructor de la clase multMatrix.

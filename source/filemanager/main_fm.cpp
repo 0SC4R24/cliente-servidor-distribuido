@@ -1,5 +1,6 @@
 #include <iostream>
-#include "../../headers/filemanager/filemanager.h"
+
+#include "../../include/filemanager/filemanager.h"
 
 int main(int argc, char **argv)
 {

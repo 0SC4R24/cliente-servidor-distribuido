@@ -1,4 +1,4 @@
-#include "../../headers/filemanager/filemanager.h"
+#include "../../include/filemanager/filemanager.h"
 
 /**
  * @brief FileManager::FileManager Constructor de la clase FileManager. Recibe por parámetros el directorio

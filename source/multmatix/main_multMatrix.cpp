@@ -1,7 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <iostream>
-#include "../../headers/multmatix/multmatrix.h"
+
+#include "../../include/multmatix/multmatrix.h"
 
 
 void freeMatrix(matrix_t *m)
