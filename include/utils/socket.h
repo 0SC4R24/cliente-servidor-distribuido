@@ -48,7 +48,7 @@ typedef struct connection_t
 } connection_t;
 
 /**
-* Inicialización de un programa tipo servidor en un puerto de la máquina host
+* Inicialización de un programa tipo servidor en un port de la máquina host
 */
 int initServer(int port);
 
@@ -60,7 +60,7 @@ int initServer(int port);
 bool checkClient();
 
 /**
-* Conexión de un programa cliente a un servidor, usando un puerto y una IP
+* Conexión de un programa cliente a un servidor, usando un port y una IP
 * El identificador del servidor usado por los clientes es "0" por defecto
 */
 connection_t initClient(std::string host, int port);

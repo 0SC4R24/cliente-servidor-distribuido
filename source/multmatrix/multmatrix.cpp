@@ -6,7 +6,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-#include "../../include/multmatix/multmatrix.h"
+#include "../../include/multmatrix/multmatrix.h"
 
 /**
  * @brief multMatrix::multMatrix Constructor de la clase multMatrix.
