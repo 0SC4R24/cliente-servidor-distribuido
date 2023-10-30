@@ -35,5 +35,12 @@ int main(int argc, char **argv)
     MultmatrixStub::print_matrix(m5);
     MultmatrixStub::print_matrix(m6);
 
+    // Liberar memoria
+    delete m1;
+    delete m2;
+    delete m3;
+    delete m4;
+    delete m5;
+    delete m6;
     delete mm_stub;
 }

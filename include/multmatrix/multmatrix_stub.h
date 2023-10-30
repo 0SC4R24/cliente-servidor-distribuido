@@ -90,6 +90,9 @@ public:
                 std::cout << "MultmatrixStub: La operacion enviada no se reconoce" << std::endl;
                 break;
         }
+
+        // Liberar memoria
+        delete[] ipaddr;
     }
 
     ~MultmatrixStub()

@@ -74,10 +74,11 @@ public:
                     pack<e_resultado_multmatrix>(packet_out, MM_OK);
 
                     // Empaquetar matrix
-                    serializar_matrix(packet_out, this->multmatrix->createRandMatrix(
-                            unpack<int>(packet_in), // rows
-                            unpack<int>(packet_in) // cols
-                    ));
+                    auto matrix = this->multmatrix->createRandMatrix(unpack<int>(packet_in), unpack<int>(packet_in));
+                    serializar_matrix(packet_out, matrix);
+
+                    // Liberar memoria
+                    delete matrix;
 
                     // Mostar mensaje
                     std::cout << "MultmatrixImp: Matriz aleatoria creada correctamente" << std::endl;
@@ -93,10 +94,11 @@ public:
                     pack<e_resultado_multmatrix>(packet_out, MM_OK);
 
                     // Empaquetar matrix
-                    serializar_matrix(packet_out, this->multmatrix->createIdentity(
-                            unpack<int>(packet_in), // rows
-                            unpack<int>(packet_in) // cols
-                    ));
+                    auto matrix = this->multmatrix->createIdentity(unpack<int>(packet_in), unpack<int>(packet_in));
+                    serializar_matrix(packet_out, matrix);
+
+                    // Liberar memoria
+                    delete matrix;
 
                     // Mostar mensaje
                     std::cout << "MultmatrixImp: Matriz identidad creada correctamente" << std::endl;
@@ -119,6 +121,11 @@ public:
                     pack<e_resultado_multmatrix>(packet_out, MM_OK);
                     serializar_matrix(packet_out, m3);
 
+                    // Liberar memoria
+                    delete m1;
+                    delete m2;
+                    delete m3;
+
                     // Mostar mensaje
                     std::cout << "MultmatrixImp: Matrices multiplicadas correctamente" << std::endl;
                 }
@@ -140,6 +147,10 @@ public:
 
                     this->multmatrix->writeMatrix(matrix, file);
                     pack<e_resultado_multmatrix>(packet_out, MM_OK);
+
+                    // Liberar memoria
+                    delete matrix;
+                    delete[] file;
 
                     // Mostar mensaje
                     std::cout << "MultmatrixImp: Matriz escrita correctamente" << std::endl;
@@ -168,6 +179,10 @@ public:
                         std::cout << "MultmatrixImp: Matriz leida correctamente" << std::endl;
                     }
                     else pack<e_resultado_multmatrix>(packet_out, MM_INVALIDMATRIX);
+
+                    // Liberar memoria
+                    delete matrix;
+                    delete[] file;
                 }
             }
                 break;

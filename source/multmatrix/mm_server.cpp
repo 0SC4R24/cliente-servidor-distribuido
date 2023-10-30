@@ -71,10 +71,19 @@ int main(int argc, char **argv)
         if (!checkClient()) usleep(1000);
         else
         {
+            // Crear un nuevo thread para atender al cliente
             std::cout << "MM_Server: Nuevo cliente conectado" << std::endl;
             auto *thread = new std::thread(atiende_cliente, getLastClientID());
+
+            // Liberar memoria del thread
+            thread->detach();
+            delete thread;
         }
     }
+
+    // Liberar memoria
+    delete &ipaddr;
+    delete &ipbroker;
 
     // Cierre de la conexion
     close(server_socket);

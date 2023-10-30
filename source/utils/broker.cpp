@@ -148,6 +148,18 @@ int main(int argc, char **argv)
         }
     }
 
+    // Liberar memoria
+    for (auto &server : servers)
+    {
+        for (auto &server_info : server.second)
+        {
+            delete[] server_info->ipaddr;
+            delete server_info;
+        }
+        delete &server;
+    }
+    delete &servers;
+
     // Cierre de la conexion
     close(server_socket);
 }
