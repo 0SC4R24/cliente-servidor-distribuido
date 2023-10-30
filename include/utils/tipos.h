@@ -13,8 +13,7 @@ typedef enum
     MM_MULTMATRIX = 4,
     MM_WRITEMATRIX = 5,
     MM_CREATEIDENTITY = 6,
-    MM_CREATERANDMATRIX = 7,
-    MM_INVALID = 8
+    MM_CREATERANDMATRIX = 7
 } e_operacion_multmatrix;
 
 typedef enum
@@ -27,7 +26,8 @@ typedef enum
     MM_NOWRITEMATRIX = 6,
     MM_NOCREATEIDENTITY = 7,
     MM_NOCREATERANDMATRIX = 8,
-    MM_ERROR = 9
+    MM_INVALIDMATRIX = 9,
+    MM_ERROR = 10,
 } e_resultado_multmatrix;
 
 #endif //MULTMATRIX_TIPOS_H

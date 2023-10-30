@@ -6,6 +6,7 @@ add_executable(
         source/filemanager/main_fm.cpp
         source/filemanager/filemanager.cpp
 )
+target_link_libraries(filemanager pthread)
 
 project(multmatrix LANGUAGES CXX)
 add_executable(
@@ -13,6 +14,7 @@ add_executable(
         source/multmatrix/main_multMatrix.cpp
         source/multmatrix/multmatrix.cpp
 )
+target_link_libraries(multmatrix pthread)
 
 project(multmatrix_server LANGUAGES CXX)
 add_executable(
@@ -22,6 +24,7 @@ add_executable(
         source/utils/socket.cpp
         include/multmatrix/multmatrix_imp.h
 )
+target_link_libraries(multmatrix_server pthread)
 
 project(multmatrix_client LANGUAGES CXX)
 add_executable(
@@ -30,4 +33,5 @@ add_executable(
         source/utils/socket.cpp
         include/multmatrix/multmatrix_stub.h
 )
+target_link_libraries(multmatrix_client pthread)
 

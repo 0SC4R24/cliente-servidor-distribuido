@@ -44,4 +44,19 @@ inline void unpackv(std::vector<unsigned char> &packet, T *arr, int size)
     for (int i = 0; i < size; i++) arr[i] = unpack<T>(packet);
 }
 
+void serializar_matrix(std::vector<unsigned char> &packet, matrix_t *matrix)
+{
+    pack(packet, matrix->rows);
+    pack(packet, matrix->cols);
+    packv(packet, matrix->data, matrix->rows * matrix->cols);
+}
+
+void deserializar_matrix(std::vector<unsigned char> &packet, matrix_t *matrix)
+{
+    matrix->rows = unpack<int>(packet);
+    matrix->cols = unpack<int>(packet);
+    matrix->data = new int[matrix->rows * matrix->cols];
+    unpackv(packet, matrix->data, matrix->rows * matrix->cols);
+}
+
 #endif //MULTMATRIX_SERIALIZACION_H

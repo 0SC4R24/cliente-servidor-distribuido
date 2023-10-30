@@ -20,7 +20,6 @@ class MultmatrixImp
 {
 private:
     multMatrix *multmatrix = nullptr;
-    matrix_t *matrix_1 = nullptr, *matrix_2 = nullptr, *matrix_res = nullptr;
 
 public:
     bool conexion_cerrada = false;
@@ -41,9 +40,9 @@ public:
                 if (this->multmatrix == nullptr)
                 {
                     this->multmatrix = new multMatrix();
-                    pack<int>(packet_out, MM_OK);
+                    pack<e_resultado_multmatrix>(packet_out, MM_OK);
                 }
-                else pack<int>(packet_out, MM_NOCONSTRUCTOR);
+                else pack<e_resultado_multmatrix>(packet_out, MM_NOCONSTRUCTOR);
             }
                 break;
 
@@ -54,55 +53,107 @@ public:
                     delete this->multmatrix;
                     this->multmatrix = nullptr;
                     this->conexion_cerrada = true;
-                    pack<int>(packet_out, MM_OK);
+                    pack<e_resultado_multmatrix>(packet_out, MM_OK);
                 }
-                else pack<int>(packet_out, MM_NODESTRUCTOR);
+                else pack<e_resultado_multmatrix>(packet_out, MM_NODESTRUCTOR);
 
             }
                 break;
 
             case MM_CREATERANDMATRIX:
             {
-                if (this->multmatrix == nullptr) pack<int>(packet_out, MM_NOCREATERANDMATRIX);
+                if (this->multmatrix == nullptr) pack<e_resultado_multmatrix>(packet_out, MM_NOCREATERANDMATRIX);
                 else
                 {
-                    this->matrix_1 = this->multmatrix->createRandMatrix(
+                    pack<e_resultado_multmatrix>(packet_out, MM_OK);
+
+                    // Empaquetar matrix
+                    serializar_matrix(packet_out, this->multmatrix->createRandMatrix(
                             unpack<int>(packet_in), // rows
                             unpack<int>(packet_in) // cols
-                    );
-                    pack<int>(packet_out, MM_OK);
+                    ));
                 }
             }
                 break;
 
             case MM_CREATEIDENTITY:
             {
-                if (this->multmatrix == nullptr) pack<int>(packet_out, MM_NOCREATEIDENTITY);
+                if (this->multmatrix == nullptr) pack<e_resultado_multmatrix>(packet_out, MM_NOCREATEIDENTITY);
                 else
                 {
-                    this->matrix_2 = this->multmatrix->createIdentity(
+                    pack<e_resultado_multmatrix>(packet_out, MM_OK);
+
+                    // Empaquetar matrix
+                    serializar_matrix(packet_out, this->multmatrix->createIdentity(
                             unpack<int>(packet_in), // rows
                             unpack<int>(packet_in) // cols
-                    );
-                    pack<int>(packet_out, MM_OK);
+                    ));
                 }
             }
                 break;
 
             case MM_MULTMATRIX:
             {
-                if (this->multmatrix == nullptr) pack<int>(packet_out, MM_NOMULTMATRIX);
+                if (this->multmatrix == nullptr) pack<e_resultado_multmatrix>(packet_out, MM_NOMULTMATRIX);
                 else
                 {
-                    this->matrix_res = this->multmatrix->multMatrices(this->matrix_1, this->matrix_2);
-                    pack<int>(packet_out, MM_OK);
+                    // Desempaquetar matrices
+                    auto *m1 = new matrix_t, *m2 = new matrix_t, *m3 = new matrix_t;
+                    deserializar_matrix(packet_in, m1);
+                    deserializar_matrix(packet_in, m2);
+                    m3 = this->multmatrix->multMatrices(m1, m2);
+
+                    // Empaquetar matrix
+                    pack<e_resultado_multmatrix>(packet_out, MM_OK);
+                    serializar_matrix(packet_out, m3);
+                }
+            }
+                break;
+
+            case MM_WRITEMATRIX:
+            {
+                if (this->multmatrix == nullptr) pack<e_resultado_multmatrix>(packet_out, MM_NOWRITEMATRIX);
+                else
+                {
+                    auto size = unpack<int>(packet_in);
+                    char *file = new char[size];
+
+                    unpackv(packet_in, file, size);
+
+                    auto *matrix = new matrix_t;
+                    deserializar_matrix(packet_in, matrix);
+
+                    this->multmatrix->writeMatrix(matrix, file);
+                    pack<e_resultado_multmatrix>(packet_out, MM_OK);
+                }
+            }
+                break;
+
+            case MM_READMATRIX:
+            {
+                if (this->multmatrix == nullptr) pack<e_resultado_multmatrix>(packet_out, MM_NOWRITEMATRIX);
+                else
+                {
+                    auto size = unpack<int>(packet_in);
+
+                    char *file = new char[size];
+                    unpackv(packet_in, file, size);
+
+                    auto *matrix = this->multmatrix->readMatrix(file);
+
+                    if (matrix != nullptr)
+                    {
+                        pack<e_resultado_multmatrix>(packet_out, MM_OK);
+                        serializar_matrix(packet_out, matrix);
+                    }
+                    else pack<e_resultado_multmatrix>(packet_out, MM_INVALIDMATRIX);
                 }
             }
                 break;
 
             default:
                 std::cout << "MultmatrixImp::recibe_operacion: Operacion no valida" << std::endl;
-                pack<int>(packet_out, MM_ERROR);
+                pack<e_resultado_multmatrix>(packet_out, MM_ERROR);
                 break;
         }
 
