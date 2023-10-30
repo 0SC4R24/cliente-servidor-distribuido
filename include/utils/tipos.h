@@ -30,4 +30,39 @@ typedef enum
     MM_ERROR = 10,
 } e_resultado_multmatrix;
 
+typedef enum
+{
+    BK_CLIENTE = 1,
+    BK_SERVIDOR = 2,
+} e_tipos_broker;
+
+typedef enum
+{
+    BK_OK = 1,
+    BK_ERROR = 2,
+    BK_NOSERVERAVAILABLE = 3
+} e_resultado_broker;
+
+typedef enum
+{
+    CL_MULTMATRIX = 1,
+    CL_FILEMANAGER = 2
+} e_tipos_cliente;
+
+typedef enum
+{
+    SV_MULTMATRIX = 1,
+    SV_FILEMANAGER = 2,
+    SV_BOTH = 3,
+    SV_NONE = 4
+} e_tipos_server;
+
+typedef struct
+{
+    char *ipaddr;
+    int ipaddr_len;
+    int port;
+    int server_id;
+} t_server;
+
 #endif //MULTMATRIX_TIPOS_H

@@ -29,11 +29,41 @@ void sigstop(int signal)
 
 int main(int argc, char **argv)
 {
+    // Variables del servidor
+    std::string ipaddr = "172.28.197.211", ipbroker = "172.28.197.211";
+    int ipport = 10001;
+
     // Manejo de señales para cerrar la conexion
     signal(SIGINT, sigstop);
 
+    // Registrar el servidor en el broker
+    std::vector<unsigned char> packet_in, packet_out;
+    connection_t conn_broker = initClient(ipbroker, 10002);
+
+    // Enviar datos del servidor al broker
+    pack(packet_out, BK_SERVIDOR);
+    pack(packet_out, (int) ipaddr.length() + 1);
+    packv(packet_out, ipaddr.c_str(), (int) ipaddr.length() + 1);
+    pack(packet_out, ipport);
+    pack(packet_out, SV_MULTMATRIX);
+    sendMSG(conn_broker.serverId, packet_out);
+
+    // Recibir respuesta del broker
+    recvMSG(conn_broker.serverId, packet_in);
+    if (unpack<e_resultado_broker>(packet_in) != BK_OK)
+    {
+        std::cout << "MM_Server: No se ha podido registrar el servidor en el broker. Cerrando servidor" << std::endl;
+        return 1;
+    }
+
+    // Cerrar la conexion con el broker
+    closeConnection(conn_broker.serverId);
+    std::cout << "MM_Server: Servidor registrado en el broker" << std::endl;
+    std::cout << "MM_Server: Conexion con el broker cerrada" << std::endl;
+
     // Inicializacion del servidor
-    int server_socket = initServer(10001);
+    int server_socket = initServer(ipport);
+    std::cout << "MM_Server: Servidor iniciado" << std::endl;
 
     // Bucle principal
     while (RUNNING)
@@ -41,6 +71,7 @@ int main(int argc, char **argv)
         if (!checkClient()) usleep(1000);
         else
         {
+            std::cout << "MM_Server: Nuevo cliente conectado" << std::endl;
             auto *thread = new std::thread(atiende_cliente, getLastClientID());
         }
     }

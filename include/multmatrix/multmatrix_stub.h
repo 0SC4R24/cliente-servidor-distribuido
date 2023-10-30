@@ -24,25 +24,55 @@ private:
     connection_t server_connection = {};
 
     // Definir ip y port de la conexion
-    std::string ip = "10.1.205.164";
-    int port = 10001;
+    std::string ip = "172.28.197.211";
+    int port = 10002;
 
 public:
     MultmatrixStub()
     {
-        // Definir conexion con la implementacion
+        // Definir conexion con el broker
         this->server_connection = initClient(this->ip, this->port);
 
         // Definir paquetes
-        std::vector<unsigned char> mensaje, respuesta;
+        std::vector<unsigned char> packet_out, packet_in;
 
-        // Envio de operacion y recepcion de respuesta
-        pack(mensaje, MM_CONSTRUCTOR);
-        sendMSG(this->server_connection.serverId, mensaje);
-        recvMSG(this->server_connection.serverId, respuesta);
+        // Iniciar conexion con el broker
+        pack(packet_out, BK_CLIENTE);
+        pack(packet_out, CL_MULTMATRIX);
+        sendMSG(this->server_connection.serverId, packet_out);
 
-        // Analizar la respuesta
-        switch (unpack<e_resultado_multmatrix>(respuesta))
+        // Recibir respuesta del broker y cerrar la conexion
+        recvMSG(this->server_connection.serverId, packet_in);
+        closeConnection(this->server_connection.serverId);
+
+        // Procesar la respuesta del broker
+        if (unpack<e_resultado_broker>(packet_in) != BK_OK)
+        {
+            std::cout << "MultmatrixStub: No se ha podido conectar con el servidor" << std::endl;
+            exit(1);
+        }
+
+        // Procesar los datos del servidor
+        int ipaddr_len = unpack<int>(packet_in);
+        char *ipaddr = new char[ipaddr_len];
+        unpackv(packet_in, ipaddr, ipaddr_len);
+        int ipport = unpack<int>(packet_in);
+
+        // Init de la conexion con la implementacion
+        this->server_connection = initClient(ipaddr, ipport);
+
+        // Mostar mensaje de conexion y datos del servidor
+        std::cout << "MultmatrixStub: Conectado con el servidor" << std::endl;
+        std::cout << "MultmatrixStub: IP: " << ipaddr << std::endl;
+        std::cout << "MultmatrixStub: Port: " << ipport << std::endl;
+
+        // Envio de operacion y recepcion de packet_in
+        pack(packet_out, MM_CONSTRUCTOR);
+        sendMSG(this->server_connection.serverId, packet_out);
+        recvMSG(this->server_connection.serverId, packet_in);
+
+        // Analizar la packet_in
+        switch (unpack<e_resultado_multmatrix>(packet_in))
         {
             case MM_OK:
                 std::cout << "MultmatrixStub: Objeto inicializado correctamente" << std::endl;
@@ -65,15 +95,15 @@ public:
     ~MultmatrixStub()
     {
         // Definir paquetes
-        std::vector<unsigned char> mensaje, respuesta;
+        std::vector<unsigned char> packet_out, packet_in;
 
-        // Envio de operacion y recepcion de respuesta
-        pack(mensaje, MM_DESTRUCTOR);
-        sendMSG(this->server_connection.serverId, mensaje);
-        recvMSG(this->server_connection.serverId, respuesta);
+        // Envio de operacion y recepcion de packet_in
+        pack(packet_out, MM_DESTRUCTOR);
+        sendMSG(this->server_connection.serverId, packet_out);
+        recvMSG(this->server_connection.serverId, packet_in);
 
-        // Analizar la respuesta
-        switch (unpack<e_resultado_multmatrix>(respuesta))
+        // Analizar la packet_in
+        switch (unpack<e_resultado_multmatrix>(packet_in))
         {
             case MM_OK:
                 std::cout << "MultmatrixStub: Objeto destruido correctamente" << std::endl;
@@ -91,26 +121,28 @@ public:
                 std::cout << "MultmatrixStub: La operacion enviada no se reconoce" << std::endl;
                 break;
         }
+
+        closeConnection(this->server_connection.serverId);
     }
 
     void create_rand(int rows, int cols, matrix_t *matrix) const
     {
         // Definir paquetes
-        std::vector<unsigned char> mensaje, respuesta;
+        std::vector<unsigned char> packet_out, packet_in;
 
-        // Envio de operacion y recepcion de respuesta
-        pack(mensaje, MM_CREATERANDMATRIX);
-        pack(mensaje, rows);
-        pack(mensaje, cols);
-        sendMSG(this->server_connection.serverId, mensaje);
-        recvMSG(this->server_connection.serverId, respuesta);
+        // Envio de operacion y recepcion de packet_in
+        pack(packet_out, MM_CREATERANDMATRIX);
+        pack(packet_out, rows);
+        pack(packet_out, cols);
+        sendMSG(this->server_connection.serverId, packet_out);
+        recvMSG(this->server_connection.serverId, packet_in);
 
-        // Analizar la respuesta
-        switch (unpack<e_resultado_multmatrix>(respuesta))
+        // Analizar la packet_in
+        switch (unpack<e_resultado_multmatrix>(packet_in))
         {
             case MM_OK:
                 // Desempaquetar matrix
-                deserializar_matrix(respuesta, matrix);
+                deserializar_matrix(packet_in, matrix);
 
                 std::cout << "MultmatrixStub: Matriz aleatoria creada correctamente" << std::endl;
                 break;
@@ -132,21 +164,21 @@ public:
     void create_identity(int rows, int cols, matrix_t *matrix) const
     {
         // Definir paquetes
-        std::vector<unsigned char> mensaje, respuesta;
+        std::vector<unsigned char> packet_out, packet_in;
 
-        // Envio de operacion y recepcion de respuesta
-        pack(mensaje, MM_CREATEIDENTITY);
-        pack(mensaje, rows);
-        pack(mensaje, cols);
-        sendMSG(this->server_connection.serverId, mensaje);
-        recvMSG(this->server_connection.serverId, respuesta);
+        // Envio de operacion y recepcion de packet_in
+        pack(packet_out, MM_CREATEIDENTITY);
+        pack(packet_out, rows);
+        pack(packet_out, cols);
+        sendMSG(this->server_connection.serverId, packet_out);
+        recvMSG(this->server_connection.serverId, packet_in);
 
-        // Analizar la respuesta
-        switch (unpack<e_resultado_multmatrix>(respuesta))
+        // Analizar la packet_in
+        switch (unpack<e_resultado_multmatrix>(packet_in))
         {
             case MM_OK:
                 // Desempaquetar matrix
-                deserializar_matrix(respuesta, matrix);
+                deserializar_matrix(packet_in, matrix);
 
                 std::cout << "MultmatrixStub: Matriz identidad creada correctamente" << std::endl;
                 break;
@@ -168,21 +200,21 @@ public:
     void mult_matrix(matrix_t *matrix_1, matrix_t *matrix_2, matrix_t *matrix_res) const
     {
         // Definir paquetes
-        std::vector<unsigned char> mensaje, respuesta;
+        std::vector<unsigned char> packet_out, packet_in;
 
-        // Envio de operacion y recepcion de respuesta
-        pack(mensaje, MM_MULTMATRIX);
-        serializar_matrix(mensaje, matrix_1);
-        serializar_matrix(mensaje, matrix_2);
-        sendMSG(this->server_connection.serverId, mensaje);
-        recvMSG(this->server_connection.serverId, respuesta);
+        // Envio de operacion y recepcion de packet_in
+        pack(packet_out, MM_MULTMATRIX);
+        serializar_matrix(packet_out, matrix_1);
+        serializar_matrix(packet_out, matrix_2);
+        sendMSG(this->server_connection.serverId, packet_out);
+        recvMSG(this->server_connection.serverId, packet_in);
 
-        // Analizar la respuesta
-        switch (unpack<e_resultado_multmatrix>(respuesta))
+        // Analizar la packet_in
+        switch (unpack<e_resultado_multmatrix>(packet_in))
         {
             case MM_OK:
                 // Desempaquetar matrix
-                deserializar_matrix(respuesta, matrix_res);
+                deserializar_matrix(packet_in, matrix_res);
 
                 std::cout << "MultmatrixStub: Matrices multiplicadas correctamente" << std::endl;
                 break;
@@ -204,18 +236,18 @@ public:
     void write_matrix(std::string file, matrix_t *matrix)
     {
         // Definir paquetes
-        std::vector<unsigned char> mensaje, respuesta;
+        std::vector<unsigned char> packet_out, packet_in;
 
-        // Envio de operacion y recepcion de respuesta
-        pack(mensaje, MM_WRITEMATRIX);
-        pack(mensaje, (int) file.length() + 1);
-        packv(mensaje, file.c_str(), (int) file.length() + 1);
-        serializar_matrix(mensaje, matrix);
-        sendMSG(this->server_connection.serverId, mensaje);
-        recvMSG(this->server_connection.serverId, respuesta);
+        // Envio de operacion y recepcion de packet_in
+        pack(packet_out, MM_WRITEMATRIX);
+        pack(packet_out, (int) file.length() + 1);
+        packv(packet_out, file.c_str(), (int) file.length() + 1);
+        serializar_matrix(packet_out, matrix);
+        sendMSG(this->server_connection.serverId, packet_out);
+        recvMSG(this->server_connection.serverId, packet_in);
 
-        // Analizar la respuesta
-        switch (unpack<e_resultado_multmatrix>(respuesta))
+        // Analizar la packet_in
+        switch (unpack<e_resultado_multmatrix>(packet_in))
         {
             case MM_OK:
                 std::cout << "MultmatrixStub: Matriz escrita correctamente" << std::endl;
@@ -242,21 +274,21 @@ public:
     void read_matrix(std::string file, matrix_t *matrix)
     {
         // Definir paquetes
-        std::vector<unsigned char> mensaje, respuesta;
+        std::vector<unsigned char> packet_out, packet_in;
 
-        // Envio de operacion y recepcion de respuesta
-        pack(mensaje, MM_READMATRIX);
-        pack(mensaje, (int) file.length() + 1);
-        packv(mensaje, file.c_str(), (int) file.length() + 1);
-        sendMSG(this->server_connection.serverId, mensaje);
-        recvMSG(this->server_connection.serverId, respuesta);
+        // Envio de operacion y recepcion de packet_in
+        pack(packet_out, MM_READMATRIX);
+        pack(packet_out, (int) file.length() + 1);
+        packv(packet_out, file.c_str(), (int) file.length() + 1);
+        sendMSG(this->server_connection.serverId, packet_out);
+        recvMSG(this->server_connection.serverId, packet_in);
 
-        // Analizar la respuesta
-        switch (unpack<e_resultado_multmatrix>(respuesta))
+        // Analizar la packet_in
+        switch (unpack<e_resultado_multmatrix>(packet_in))
         {
             case MM_OK:
                 // Desempaquetar matrix
-                deserializar_matrix(respuesta, matrix);
+                deserializar_matrix(packet_in, matrix);
 
                 std::cout << "MultmatrixStub: Matriz leida correctamente" << std::endl;
                 break;

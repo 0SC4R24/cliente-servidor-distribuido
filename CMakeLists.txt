@@ -16,6 +16,14 @@ add_executable(
 )
 target_link_libraries(multmatrix pthread)
 
+project(broker LANGUAGES CXX)
+add_executable(
+        broker
+        source/utils/broker.cpp
+        source/utils/socket.cpp
+)
+target_link_libraries(broker pthread)
+
 project(multmatrix_server LANGUAGES CXX)
 add_executable(
         multmatrix_server

@@ -8,6 +8,7 @@
 
 #include <vector>
 
+#include "../multmatrix/multmatrix.h"
 
 template<typename T>
 inline void pack(std::vector<unsigned char> &packet, T data)

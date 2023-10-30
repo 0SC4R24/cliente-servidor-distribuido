@@ -221,7 +221,8 @@ void getMSG(int clientID, std::vector<t> &data)
     if (!checkPendingMessages(clientID))
     {
         data.resize(0);
-    } else
+    }
+    else
     {
         msg_t *msg = clientList[clientID].buffer->front();
         clientList[clientID].buffer->pop_front();

@@ -9,7 +9,7 @@ int main(int argc, char **argv)
     auto *mm_stub = new MultmatrixStub();
 
     // Definir matrices
-    matrix_t *m1 = new matrix_t, *m2 = new matrix_t, *m3 = new matrix_t;
+    auto *m1 = new matrix_t, *m2 = new matrix_t, *m3 = new matrix_t;
     mm_stub->create_identity(5, 5, m1);
     mm_stub->create_rand(5, 5, m2);
     mm_stub->mult_matrix(m1, m2, m3);
