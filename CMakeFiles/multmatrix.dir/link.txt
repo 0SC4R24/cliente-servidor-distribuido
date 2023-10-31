@@ -1,0 +1,1 @@
+/usr/bin/c++ -rdynamic CMakeFiles/multmatrix.dir/source/multmatrix/main_multMatrix.cpp.o CMakeFiles/multmatrix.dir/source/multmatrix/multmatrix.cpp.o -o multmatrix  -lpthread 

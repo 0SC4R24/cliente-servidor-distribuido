@@ -9,6 +9,7 @@
 #include <vector>
 
 #include "../multmatrix/multmatrix.h"
+#include "../filemanager/filemanager.h"
 
 template<typename T>
 inline void pack(std::vector<unsigned char> &packet, T data)

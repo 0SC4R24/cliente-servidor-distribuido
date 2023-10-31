@@ -1,0 +1,9 @@
+/home/ubuntu/Filemanager_Server/CMakeFiles/filemanager.dir
+/home/ubuntu/Filemanager_Server/CMakeFiles/multmatrix.dir
+/home/ubuntu/Filemanager_Server/CMakeFiles/broker.dir
+/home/ubuntu/Filemanager_Server/CMakeFiles/multmatrix_server.dir
+/home/ubuntu/Filemanager_Server/CMakeFiles/multmatrix_client.dir
+/home/ubuntu/Filemanager_Server/CMakeFiles/filemanager_server.dir
+/home/ubuntu/Filemanager_Server/CMakeFiles/filemanager_client.dir
+/home/ubuntu/Filemanager_Server/CMakeFiles/edit_cache.dir
+/home/ubuntu/Filemanager_Server/CMakeFiles/rebuild_cache.dir

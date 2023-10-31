@@ -1,0 +1,1 @@
+/usr/bin/c++ -rdynamic CMakeFiles/filemanager.dir/source/filemanager/main_fm.cpp.o CMakeFiles/filemanager.dir/source/filemanager/filemanager.cpp.o -o filemanager  -lpthread 

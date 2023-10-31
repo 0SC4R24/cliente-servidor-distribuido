@@ -43,3 +43,21 @@ add_executable(
 )
 target_link_libraries(multmatrix_client pthread)
 
+project(filemanager_server LANGUAGES CXX)
+add_executable(
+        filemanager_server
+        source/filemanager/fm_server.cpp
+        source/filemanager/filemanager.cpp
+        source/utils/socket.cpp
+        include/filemanager/filemanager_imp.h
+)
+target_link_libraries(filemanager_server pthread)
+
+project(filemanager_client LANGUAGES CXX)
+add_executable(
+        filemanager_client
+        source/filemanager/fm_client.cpp
+        source/utils/socket.cpp
+        include/filemanager/filemanager_stub.h
+)
+target_link_libraries(filemanager_client pthread)

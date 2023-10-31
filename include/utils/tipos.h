@@ -66,3 +66,17 @@ typedef struct
 } t_server;
 
 #endif //MULTMATRIX_TIPOS_H
+
+
+//
+// Created by Oscar on 31/10/2023.
+//
+
+#ifndef FILEMANAGER_TIPOS_H
+#define FILEMANAGER_TIPOS_H
+
+typedef enum {
+    FL_CONSTRUCTOR = 1
+} e_operacion_filemanager;
+
+#endif //FILEMANAGER_TIPOS_H
