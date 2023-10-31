@@ -8,6 +8,7 @@
 
 #include <vector>
 
+#include "tipos.h"
 #include "../multmatrix/multmatrix.h"
 #include "../filemanager/filemanager.h"
 
@@ -59,6 +60,37 @@ void deserializar_matrix(std::vector<unsigned char> &packet, matrix_t *matrix)
     matrix->cols = unpack<int>(packet);
     matrix->data = new int[matrix->rows * matrix->cols];
     unpackv(packet, matrix->data, matrix->rows * matrix->cols);
+}
+
+void serializar_char_array(std::vector<unsigned char> &packet, const char *arr, int size)
+{
+    pack(packet, size);
+    packv(packet, arr, size);
+}
+
+void serializar_server(std::vector<unsigned char> &packet, t_server &server)
+{
+    serializar_char_array(packet, server.ipaddr, server.ipaddr_len);
+    pack(packet, server.port);
+    pack(packet, server.type);
+}
+
+t_server *deserializar_server(std::vector<unsigned char> &packet)
+{
+    t_server *server = new t_server;
+    server->ipaddr_len = unpack<int>(packet);
+    server->ipaddr = new char[server->ipaddr_len];
+    unpackv(packet, server->ipaddr, server->ipaddr_len);
+    server->port = unpack<int>(packet);
+    server->type = unpack<e_tipos_server>(packet);
+    return server;
+}
+
+t_server *deserializar_server_con_id(std::vector<unsigned char> &packet, int server_id)
+{
+    t_server *s = deserializar_server(packet);
+    s->server_id = server_id;
+    return s;
 }
 
 #endif //MULTMATRIX_SERIALIZACION_H

@@ -1,20 +1,9 @@
 cmake_minimum_required(VERSION 2.8.11)
 
-project(filemanager LANGUAGES CXX)
-add_executable(
-        filemanager
-        source/filemanager/main_fm.cpp
-        source/filemanager/filemanager.cpp
-)
-target_link_libraries(filemanager pthread)
-
-project(multmatrix LANGUAGES CXX)
-add_executable(
-        multmatrix
-        source/multmatrix/main_multMatrix.cpp
-        source/multmatrix/multmatrix.cpp
-)
-target_link_libraries(multmatrix pthread)
+set(CMAKE_BUILD_TYPE Debug)
+set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_EXE_LINKER_FLAGS "-static")
 
 project(broker LANGUAGES CXX)
 add_executable(
@@ -24,40 +13,40 @@ add_executable(
 )
 target_link_libraries(broker pthread)
 
-project(multmatrix_server LANGUAGES CXX)
+project(mm_server LANGUAGES CXX)
 add_executable(
-        multmatrix_server
+        mm_server
         source/multmatrix/mm_server.cpp
         source/multmatrix/multmatrix.cpp
         source/utils/socket.cpp
         include/multmatrix/multmatrix_imp.h
 )
-target_link_libraries(multmatrix_server pthread)
+target_link_libraries(mm_server pthread)
 
-project(multmatrix_client LANGUAGES CXX)
+project(mm_client LANGUAGES CXX)
 add_executable(
-        multmatrix_client
-        source/multmatrix/mm_client.cpp
+        mm_client
+        source/multmatrix/main_multMatrix.cpp
         source/utils/socket.cpp
         include/multmatrix/multmatrix_stub.h
 )
-target_link_libraries(multmatrix_client pthread)
+target_link_libraries(mm_client pthread)
 
-project(filemanager_server LANGUAGES CXX)
+project(fm_server LANGUAGES CXX)
 add_executable(
-        filemanager_server
+        fm_server
         source/filemanager/fm_server.cpp
         source/filemanager/filemanager.cpp
         source/utils/socket.cpp
         include/filemanager/filemanager_imp.h
 )
-target_link_libraries(filemanager_server pthread)
+target_link_libraries(fm_server pthread)
 
-project(filemanager_client LANGUAGES CXX)
+project(fm_client LANGUAGES CXX)
 add_executable(
-        filemanager_client
+        fm_client
         source/filemanager/fm_client.cpp
         source/utils/socket.cpp
         include/filemanager/filemanager_stub.h
 )
-target_link_libraries(filemanager_client pthread)
+target_link_libraries(fm_client pthread)

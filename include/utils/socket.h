@@ -213,6 +213,8 @@ void sendMSG(int clientID, std::vector<t> &data)
     msg = END;
     write(socket, &msg, sizeof(char));
 
+    // Limpiar buffer de datos
+    data.resize(0);
 }
 
 template<typename t>

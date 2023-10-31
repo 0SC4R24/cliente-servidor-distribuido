@@ -16,83 +16,86 @@
 #include "../utils/socket.h"
 #include "../utils/serializacion.h"
 #include "../utils/tipos.h"
+#include "../utils/peticiones.h"
 
 class MultmatrixStub
 {
 private:
     // Definir conexion con la implementacion
-    connection_t server_connection = {};
+    connection_t server = {};
 
     // Definir ip y port de la conexion
-    std::string ip = "172.28.197.211";
-    int port = 10002;
+    std::string ipaddr = "127.0.0.1";
+    int ipport = 10002;
 
 public:
     MultmatrixStub()
     {
         // Definir conexion con el broker
-        this->server_connection = initClient(this->ip, this->port);
+        this->server = initClient(this->ipaddr, this->ipport);
 
         // Definir paquetes
         std::vector<unsigned char> packet_out, packet_in;
 
         // Iniciar conexion con el broker
-        pack(packet_out, BK_CLIENTE);
-        pack(packet_out, CL_MULTMATRIX);
-        sendMSG(this->server_connection.serverId, packet_out);
+        prepara_y_envia_cliente_broker(this->server.serverId, packet_out, CL_MULTMATRIX);
 
         // Recibir respuesta del broker y cerrar la conexion
-        recvMSG(this->server_connection.serverId, packet_in);
-        closeConnection(this->server_connection.serverId);
+        recvMSG(this->server.serverId, packet_in);
+        closeConnection(this->server.serverId);
 
         // Procesar la respuesta del broker
-        if (unpack<e_resultado_broker>(packet_in) != BK_OK)
+        switch (unpack<e_resultado_broker>(packet_in))
         {
-            std::cout << "MultmatrixStub: No se ha podido conectar con el servidor" << std::endl;
-            exit(1);
+            case BK_OK:
+                std::cout << "MultmatrixStub: Conectado con el broker. Continuando..." << std::endl;
+                break;
+
+            case BK_NOSERVERAVAILABLE:
+                // TODO: Implementar que espere a que un servidor se registre en el broker
+                std::cout << "MultmatrixStub: No hay servidores disponibles. Terminando..." << std::endl;
+                exit(2);
+
+            default:
+                std::cout << "MultmatrixStub: La operacion enviada no se reconoce. Terminando..." << std::endl;
+                exit(3);
         }
 
         // Procesar los datos del servidor
-        int ipaddr_len = unpack<int>(packet_in);
-        char *ipaddr = new char[ipaddr_len];
-        unpackv(packet_in, ipaddr, ipaddr_len);
-        int ipport = unpack<int>(packet_in);
+        t_server *servidor_solicitado = deserializar_server(packet_in);
 
         // Init de la conexion con la implementacion
-        this->server_connection = initClient(ipaddr, ipport);
+        this->server = initClient(servidor_solicitado->ipaddr, servidor_solicitado->port);
 
         // Mostar mensaje de conexion y datos del servidor
         std::cout << "MultmatrixStub: Conectado con el servidor" << std::endl;
-        std::cout << "MultmatrixStub: IP: " << ipaddr << std::endl;
-        std::cout << "MultmatrixStub: Port: " << ipport << std::endl;
+        std::cout << "MultmatrixStub: IP: " << servidor_solicitado->ipaddr << std::endl;
+        std::cout << "MultmatrixStub: Port: " << servidor_solicitado->port << std::endl;
 
         // Envio de operacion y recepcion de packet_in
         pack(packet_out, MM_CONSTRUCTOR);
-        sendMSG(this->server_connection.serverId, packet_out);
-        recvMSG(this->server_connection.serverId, packet_in);
+        sendMSG(this->server.serverId, packet_out);
+        recvMSG(this->server.serverId, packet_in);
 
         // Analizar la packet_in
         switch (unpack<e_resultado_multmatrix>(packet_in))
         {
             case MM_OK:
-                std::cout << "MultmatrixStub: Objeto inicializado correctamente" << std::endl;
+                std::cout << "MultmatrixStub: Objeto inicializado correctamente. Continuando..." << std::endl;
                 break;
 
             case MM_NOCONSTRUCTOR:
-                std::cout << "MultmatrixStub: Ya se ha inicializado un objeto" << std::endl;
-                break;
-
-            case MM_ERROR:
-                std::cout << "MultmatrixStub: La operacion enviada no se reconoce" << std::endl;
+                std::cout << "MultmatrixStub: Ya se ha inicializado un objeto. Continuando..." << std::endl;
                 break;
 
             default:
-                std::cout << "MultmatrixStub: La operacion enviada no se reconoce" << std::endl;
+                std::cout << "MultmatrixStub: La operacion enviada no se reconoce. Ignorando..." << std::endl;
                 break;
         }
 
         // Liberar memoria
-        delete[] ipaddr;
+        delete[] servidor_solicitado->ipaddr;
+        delete servidor_solicitado;
     }
 
     ~MultmatrixStub()
@@ -102,43 +105,40 @@ public:
 
         // Envio de operacion y recepcion de packet_in
         pack(packet_out, MM_DESTRUCTOR);
-        sendMSG(this->server_connection.serverId, packet_out);
-        recvMSG(this->server_connection.serverId, packet_in);
+        sendMSG(this->server.serverId, packet_out);
+        recvMSG(this->server.serverId, packet_in);
 
         // Analizar la packet_in
         switch (unpack<e_resultado_multmatrix>(packet_in))
         {
             case MM_OK:
-                std::cout << "MultmatrixStub: Objeto destruido correctamente" << std::endl;
+                std::cout << "MultmatrixStub: Objeto destruido correctamente. Cerrando conexion..." << std::endl;
                 break;
 
             case MM_NODESTRUCTOR:
-                std::cout << "MultmatrixStub: No se ha destruido un objeto" << std::endl;
-                break;
-
-            case MM_ERROR:
-                std::cout << "MultmatrixStub: La operacion enviada no se reconoce" << std::endl;
+                std::cout << "MultmatrixStub: No se ha destruido un objeto. Cerrando conexion..." << std::endl;
                 break;
 
             default:
-                std::cout << "MultmatrixStub: La operacion enviada no se reconoce" << std::endl;
+                std::cout << "MultmatrixStub: La operacion enviada no se reconoce. Cerrando conexion..." << std::endl;
                 break;
         }
 
-        closeConnection(this->server_connection.serverId);
+        closeConnection(this->server.serverId);
     }
 
-    void create_rand(int rows, int cols, matrix_t *matrix) const
+    matrix_t *createRandMatrix(int rows, int cols) const
     {
         // Definir paquetes
         std::vector<unsigned char> packet_out, packet_in;
+        matrix_t *matrix = new matrix_t;
 
         // Envio de operacion y recepcion de packet_in
         pack(packet_out, MM_CREATERANDMATRIX);
         pack(packet_out, rows);
         pack(packet_out, cols);
-        sendMSG(this->server_connection.serverId, packet_out);
-        recvMSG(this->server_connection.serverId, packet_in);
+        sendMSG(this->server.serverId, packet_out);
+        recvMSG(this->server.serverId, packet_in);
 
         // Analizar la packet_in
         switch (unpack<e_resultado_multmatrix>(packet_in))
@@ -147,34 +147,33 @@ public:
                 // Desempaquetar matrix
                 deserializar_matrix(packet_in, matrix);
 
-                std::cout << "MultmatrixStub: Matriz aleatoria creada correctamente" << std::endl;
+                std::cout << "MultmatrixStub: Matriz aleatoria creada correctamente. Continuando..." << std::endl;
                 break;
 
             case MM_NOCREATERANDMATRIX:
-                std::cout << "MultmatrixStub: No se ha creado la matriz aleatoria" << std::endl;
-                break;
-
-            case MM_ERROR:
-                std::cout << "MultmatrixStub: La operacion enviada no se reconoce" << std::endl;
+                std::cout << "MultmatrixStub: No se ha creado la matriz aleatoria. Continuando..." << std::endl;
                 break;
 
             default:
-                std::cout << "MultmatrixStub: La operacion enviada no se reconoce" << std::endl;
+                std::cout << "MultmatrixStub: La operacion enviada no se reconoce. Ignorando..." << std::endl;
                 break;
         }
+
+        return matrix;
     }
 
-    void create_identity(int rows, int cols, matrix_t *matrix) const
+    matrix_t *createIdentity(int rows, int cols) const
     {
         // Definir paquetes
         std::vector<unsigned char> packet_out, packet_in;
+        matrix_t *matrix = new matrix_t;
 
         // Envio de operacion y recepcion de packet_in
         pack(packet_out, MM_CREATEIDENTITY);
         pack(packet_out, rows);
         pack(packet_out, cols);
-        sendMSG(this->server_connection.serverId, packet_out);
-        recvMSG(this->server_connection.serverId, packet_in);
+        sendMSG(this->server.serverId, packet_out);
+        recvMSG(this->server.serverId, packet_in);
 
         // Analizar la packet_in
         switch (unpack<e_resultado_multmatrix>(packet_in))
@@ -183,108 +182,100 @@ public:
                 // Desempaquetar matrix
                 deserializar_matrix(packet_in, matrix);
 
-                std::cout << "MultmatrixStub: Matriz identidad creada correctamente" << std::endl;
+                std::cout << "MultmatrixStub: Matriz identidad creada correctamente. Continuando..." << std::endl;
                 break;
 
             case MM_NOCREATEIDENTITY:
-                std::cout << "MultmatrixStub: No se ha creado la matriz identidad" << std::endl;
-                break;
-
-            case MM_ERROR:
-                std::cout << "MultmatrixStub: La operacion enviada no se reconoce" << std::endl;
+                std::cout << "MultmatrixStub: No se ha creado la matriz identidad. Continuando..." << std::endl;
                 break;
 
             default:
-                std::cout << "MultmatrixStub: La operacion enviada no se reconoce" << std::endl;
+                std::cout << "MultmatrixStub: La operacion enviada no se reconoce. Ignorando..." << std::endl;
                 break;
         }
+
+        return matrix;
     }
 
-    void mult_matrix(matrix_t *matrix_1, matrix_t *matrix_2, matrix_t *matrix_res) const
+    matrix_t *multMatrices(matrix_t *matrix_1, matrix_t *matrix_2) const
     {
         // Definir paquetes
         std::vector<unsigned char> packet_out, packet_in;
+        matrix_t *matrix = new matrix_t;
 
         // Envio de operacion y recepcion de packet_in
         pack(packet_out, MM_MULTMATRIX);
         serializar_matrix(packet_out, matrix_1);
         serializar_matrix(packet_out, matrix_2);
-        sendMSG(this->server_connection.serverId, packet_out);
-        recvMSG(this->server_connection.serverId, packet_in);
+        sendMSG(this->server.serverId, packet_out);
+        recvMSG(this->server.serverId, packet_in);
 
         // Analizar la packet_in
         switch (unpack<e_resultado_multmatrix>(packet_in))
         {
             case MM_OK:
                 // Desempaquetar matrix
-                deserializar_matrix(packet_in, matrix_res);
+                deserializar_matrix(packet_in, matrix);
 
-                std::cout << "MultmatrixStub: Matrices multiplicadas correctamente" << std::endl;
+                std::cout << "MultmatrixStub: Matrices multiplicadas correctamente. Continuando..." << std::endl;
                 break;
 
             case MM_NOMULTMATRIX:
-                std::cout << "MultmatrixStub: No se han multiplicado las matrices" << std::endl;
-                break;
-
-            case MM_ERROR:
-                std::cout << "MultmatrixStub: La operacion enviada no se reconoce" << std::endl;
+                std::cout << "MultmatrixStub: No se han multiplicado las matrices. Continuando..." << std::endl;
                 break;
 
             default:
-                std::cout << "MultmatrixStub: La operacion enviada no se reconoce" << std::endl;
+                std::cout << "MultmatrixStub: La operacion enviada no se reconoce. Ignorando..." << std::endl;
                 break;
         }
+
+        return matrix;
     }
 
-    void write_matrix(std::string file, matrix_t *matrix)
+    void writeMatrix(matrix_t *matrix, std::string file)
     {
         // Definir paquetes
         std::vector<unsigned char> packet_out, packet_in;
 
         // Envio de operacion y recepcion de packet_in
         pack(packet_out, MM_WRITEMATRIX);
-        pack(packet_out, (int) file.length() + 1);
-        packv(packet_out, file.c_str(), (int) file.length() + 1);
+        serializar_char_array(packet_out, file.c_str(), (int) file.length() + 1);
         serializar_matrix(packet_out, matrix);
-        sendMSG(this->server_connection.serverId, packet_out);
-        recvMSG(this->server_connection.serverId, packet_in);
+        sendMSG(this->server.serverId, packet_out);
+        recvMSG(this->server.serverId, packet_in);
 
         // Analizar la packet_in
         switch (unpack<e_resultado_multmatrix>(packet_in))
         {
             case MM_OK:
-                std::cout << "MultmatrixStub: Matriz escrita correctamente" << std::endl;
+                std::cout << "MultmatrixStub: Matriz escrita correctamente. Continuando..." << std::endl;
                 break;
 
             case MM_NOWRITEMATRIX:
-                std::cout << "MultmatrixStub: No se ha escrito la matriz" << std::endl;
+                std::cout << "MultmatrixStub: No se ha escrito la matriz. Continuando..." << std::endl;
                 break;
 
             case MM_INVALIDMATRIX:
-                std::cout << "MultmatrixStub: La matriz seleccionada no es valida" << std::endl;
-                break;
-
-            case MM_ERROR:
-                std::cout << "MultmatrixStub: La operacion enviada no se reconoce" << std::endl;
+                std::cout << "MultmatrixStub: La matriz seleccionada no es valida. Continuando..." << std::endl;
                 break;
 
             default:
-                std::cout << "MultmatrixStub: La operacion enviada no se reconoce" << std::endl;
+                std::cout << "MultmatrixStub: La operacion enviada no se reconoce. Ignorando..." << std::endl;
                 break;
         }
     }
 
-    void read_matrix(std::string file, matrix_t *matrix)
+    matrix_t *readMatrix(std::string file)
     {
         // Definir paquetes
         std::vector<unsigned char> packet_out, packet_in;
+        matrix_t *matrix = new matrix_t;
 
         // Envio de operacion y recepcion de packet_in
         pack(packet_out, MM_READMATRIX);
-        pack(packet_out, (int) file.length() + 1);
-        packv(packet_out, file.c_str(), (int) file.length() + 1);
-        sendMSG(this->server_connection.serverId, packet_out);
-        recvMSG(this->server_connection.serverId, packet_in);
+        serializar_char_array(packet_out, file.c_str(), (int) file.length() + 1);
+        sendMSG(this->server.serverId, packet_out);
+        recvMSG(this->server.serverId, packet_in);
 
         // Analizar la packet_in
         switch (unpack<e_resultado_multmatrix>(packet_in))
@@ -293,25 +284,23 @@ public:
                 // Desempaquetar matrix
                 deserializar_matrix(packet_in, matrix);
 
-                std::cout << "MultmatrixStub: Matriz leida correctamente" << std::endl;
+                std::cout << "MultmatrixStub: Matriz leida correctamente. Continuando..." << std::endl;
                 break;
 
             case MM_NOREADMATRIX:
-                std::cout << "MultmatrixStub: No se ha leido la matriz" << std::endl;
+                std::cout << "MultmatrixStub: No se ha leido la matriz. Continuando..." << std::endl;
                 break;
 
             case MM_INVALIDMATRIX:
-                std::cout << "MultmatrixStub: La matriz seleccionada no es valida" << std::endl;
-                break;
-
-            case MM_ERROR:
-                std::cout << "MultmatrixStub: La operacion enviada no se reconoce" << std::endl;
+                std::cout << "MultmatrixStub: La matriz seleccionada no es valida. Continuando..." << std::endl;
                 break;
 
             default:
-                std::cout << "MultmatrixStub: La operacion enviada no se reconoce" << std::endl;
+                std::cout << "MultmatrixStub: La operacion enviada no se reconoce. Ignorando..." << std::endl;
                 break;
         }
+
+        return matrix;
     }
 
     static void print_matrix(matrix_t *m)

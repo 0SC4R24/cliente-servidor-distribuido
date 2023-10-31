@@ -1,1 +1,0 @@
-/usr/bin/c++ -rdynamic CMakeFiles/filemanager_server.dir/source/filemanager/fm_server.cpp.o CMakeFiles/filemanager_server.dir/source/filemanager/filemanager.cpp.o CMakeFiles/filemanager_server.dir/source/utils/socket.cpp.o -o filemanager_server  -lpthread 
