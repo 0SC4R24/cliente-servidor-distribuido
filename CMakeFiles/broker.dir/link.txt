@@ -1,1 +1,0 @@
-/usr/bin/c++ -rdynamic CMakeFiles/broker.dir/source/utils/broker.cpp.o CMakeFiles/broker.dir/source/utils/socket.cpp.o -o broker  -lpthread 

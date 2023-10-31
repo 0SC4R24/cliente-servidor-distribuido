@@ -1,6 +1,7 @@
 # Carpetas
 .idea
 cmake-build-debug
+CMakeFiles
 out
 
 # Ficheros

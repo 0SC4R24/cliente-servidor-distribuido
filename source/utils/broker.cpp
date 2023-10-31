@@ -149,16 +149,12 @@ int main(int argc, char **argv)
     }
 
     // Liberar memoria
-    for (auto &server : servers)
+    for (auto &server: servers)
     {
-        for (auto &server_info : server.second)
-        {
-            delete[] server_info->ipaddr;
-            delete server_info;
-        }
-        delete &server;
+        for (auto &server_info: server.second) delete[] server_info->ipaddr;
+        server.second.clear();
     }
-    delete &servers;
+    servers.clear();
 
     // Cierre de la conexion
     close(server_socket);

@@ -212,7 +212,6 @@ void sendMSG(int clientID, std::vector<t> &data)
     //send end
     msg = END;
     write(socket, &msg, sizeof(char));
-
 }
 
 template<typename t>

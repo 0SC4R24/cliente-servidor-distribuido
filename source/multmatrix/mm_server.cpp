@@ -30,7 +30,7 @@ void sigstop(int signal)
 int main(int argc, char **argv)
 {
     // Variables del servidor
-    std::string ipaddr = "172.28.197.211", ipbroker = "172.28.197.211";
+    std::string ipaddr = "10.1.205.164", ipbroker = "10.1.205.164";
     int ipport = 10001;
 
     // Manejo de señales para cerrar la conexion
@@ -74,10 +74,6 @@ int main(int argc, char **argv)
             // Crear un nuevo thread para atender al cliente
             std::cout << "MM_Server: Nuevo cliente conectado" << std::endl;
             auto *thread = new std::thread(atiende_cliente, getLastClientID());
-
-            // Liberar memoria del thread
-            thread->detach();
-            delete thread;
         }
     }
 
