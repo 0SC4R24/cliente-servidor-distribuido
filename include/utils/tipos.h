@@ -65,10 +65,10 @@ typedef struct
     int ipaddr_len;
     int port;
     int server_id;
+    e_tipos_server type;
 } t_server;
 
 #endif //MULTMATRIX_TIPOS_H
-
 
 //
 // Created by Oscar on 31/10/2023.

@@ -29,11 +29,10 @@ public:
         // Definir paquetes
         std::vector<unsigned char> packet_in, packet_out;
 
-        // Recibir paquete y desempaquetar la operation
+        // Recibir paquete y desempaquetar operacion
         recvMSG(client_id, packet_in);
-        auto operation = unpack<e_operacion_multmatrix>(packet_in);
 
-        switch (operation)
+        switch (unpack<e_operacion_multmatrix>(packet_in))
         {
             case MM_CONSTRUCTOR:
             {
@@ -43,7 +42,7 @@ public:
                     pack<e_resultado_multmatrix>(packet_out, MM_OK);
 
                     // Mostar mensaje
-                    std::cout << "MultmatrixImp: Objeto inicializado correctamente" << std::endl;
+                    std::cout << "MultmatrixImp: Objeto inicializado correctamente. Continuando..." << std::endl;
                 }
                 else pack<e_resultado_multmatrix>(packet_out, MM_NOCONSTRUCTOR);
             }
@@ -59,7 +58,7 @@ public:
                     pack<e_resultado_multmatrix>(packet_out, MM_OK);
 
                     // Mostar mensaje
-                    std::cout << "MultmatrixImp: Objeto eliminado correctamente" << std::endl;
+                    std::cout << "MultmatrixImp: Objeto eliminado correctamente. Cerrando conexion..." << std::endl;
                 }
                 else pack<e_resultado_multmatrix>(packet_out, MM_NODESTRUCTOR);
 
@@ -74,14 +73,14 @@ public:
                     pack<e_resultado_multmatrix>(packet_out, MM_OK);
 
                     // Empaquetar matrix
-                    auto matrix = this->multmatrix->createRandMatrix(unpack<int>(packet_in), unpack<int>(packet_in));
+                    matrix_t *matrix = this->multmatrix->createRandMatrix(unpack<int>(packet_in), unpack<int>(packet_in));
                     serializar_matrix(packet_out, matrix);
 
                     // Liberar memoria
                     delete matrix;
 
                     // Mostar mensaje
-                    std::cout << "MultmatrixImp: Matriz aleatoria creada correctamente" << std::endl;
+                    std::cout << "MultmatrixImp: Matriz aleatoria creada correctamente. Continuando..." << std::endl;
                 }
             }
                 break;
@@ -94,14 +93,14 @@ public:
                     pack<e_resultado_multmatrix>(packet_out, MM_OK);
 
                     // Empaquetar matrix
-                    auto matrix = this->multmatrix->createIdentity(unpack<int>(packet_in), unpack<int>(packet_in));
+                    matrix_t *matrix = this->multmatrix->createIdentity(unpack<int>(packet_in), unpack<int>(packet_in));
                     serializar_matrix(packet_out, matrix);
 
                     // Liberar memoria
                     delete matrix;
 
                     // Mostar mensaje
-                    std::cout << "MultmatrixImp: Matriz identidad creada correctamente" << std::endl;
+                    std::cout << "MultmatrixImp: Matriz identidad creada correctamente. Continuando..." << std::endl;
                 }
             }
                 break;
@@ -112,10 +111,12 @@ public:
                 else
                 {
                     // Desempaquetar matrices
-                    auto *m1 = new matrix_t, *m2 = new matrix_t, *m3 = new matrix_t;
+                    matrix_t *m1 = new matrix_t, *m2 = new matrix_t;
                     deserializar_matrix(packet_in, m1);
                     deserializar_matrix(packet_in, m2);
-                    m3 = this->multmatrix->multMatrices(m1, m2);
+
+                    // Multiplicar matrices
+                    matrix_t *m3 = this->multmatrix->multMatrices(m1, m2);
 
                     // Empaquetar matrix
                     pack<e_resultado_multmatrix>(packet_out, MM_OK);
@@ -127,7 +128,7 @@ public:
                     delete m3;
 
                     // Mostar mensaje
-                    std::cout << "MultmatrixImp: Matrices multiplicadas correctamente" << std::endl;
+                    std::cout << "MultmatrixImp: Matrices multiplicadas correctamente. Continuando..." << std::endl;
                 }
             }
                 break;
@@ -137,12 +138,12 @@ public:
                 if (this->multmatrix == nullptr) pack<e_resultado_multmatrix>(packet_out, MM_NOWRITEMATRIX);
                 else
                 {
-                    auto size = unpack<int>(packet_in);
+                    int size = unpack<int>(packet_in);
                     char *file = new char[size];
 
                     unpackv(packet_in, file, size);
 
-                    auto *matrix = new matrix_t;
+                    matrix_t *matrix = new matrix_t;
                     deserializar_matrix(packet_in, matrix);
 
                     this->multmatrix->writeMatrix(matrix, file);
@@ -153,7 +154,7 @@ public:
                     delete[] file;
 
                     // Mostar mensaje
-                    std::cout << "MultmatrixImp: Matriz escrita correctamente" << std::endl;
+                    std::cout << "MultmatrixImp: Matriz escrita correctamente. Continuando..." << std::endl;
                 }
             }
                 break;
@@ -163,12 +164,12 @@ public:
                 if (this->multmatrix == nullptr) pack<e_resultado_multmatrix>(packet_out, MM_NOREADMATRIX);
                 else
                 {
-                    auto size = unpack<int>(packet_in);
-
+                    int size = unpack<int>(packet_in);
                     char *file = new char[size];
+
                     unpackv(packet_in, file, size);
 
-                    auto *matrix = this->multmatrix->readMatrix(file);
+                    matrix_t *matrix = this->multmatrix->readMatrix(file);
 
                     if (matrix != nullptr)
                     {
@@ -176,7 +177,7 @@ public:
                         serializar_matrix(packet_out, matrix);
 
                         // Mostar mensaje
-                        std::cout << "MultmatrixImp: Matriz leida correctamente" << std::endl;
+                        std::cout << "MultmatrixImp: Matriz leida correctamente. Continuando..." << std::endl;
                     }
                     else pack<e_resultado_multmatrix>(packet_out, MM_INVALIDMATRIX);
 
@@ -188,7 +189,7 @@ public:
                 break;
 
             default:
-                std::cout << "MultmatrixImp: Operacion invalida" << std::endl;
+                std::cout << "MultmatrixImp: Operacion invalida. Ignorando..." << std::endl;
                 pack<e_resultado_multmatrix>(packet_out, MM_ERROR);
                 break;
         }
