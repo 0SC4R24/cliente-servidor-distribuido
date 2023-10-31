@@ -34,13 +34,15 @@ typedef enum
 {
     BK_CLIENTE = 1,
     BK_SERVIDOR = 2,
+    BK_DELSERVIDOR = 3
 } e_tipos_broker;
 
 typedef enum
 {
     BK_OK = 1,
     BK_ERROR = 2,
-    BK_NOSERVERAVAILABLE = 3
+    BK_NOSERVERAVAILABLE = 3,
+    BK_NOSERVERFOUND = 4
 } e_resultado_broker;
 
 typedef enum
@@ -75,7 +77,8 @@ typedef struct
 #ifndef FILEMANAGER_TIPOS_H
 #define FILEMANAGER_TIPOS_H
 
-typedef enum {
+typedef enum
+{
     FL_CONSTRUCTOR = 1
 } e_operacion_filemanager;
 

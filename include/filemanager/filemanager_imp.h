@@ -23,49 +23,56 @@ using namespace std;
 
 class FileManager_imp
 {
-    private:
-        int clientID;
-        FileManager* fm = nullptr;
-    public:
-        bool conexionCerrada = false;
+private:
+    int clientID;
+    FileManager *fm = nullptr;
+public:
+    bool conexionCerrada = false;
 
-        FileManager_imp() {
+    FileManager_imp()
+    {
 
-        }
+    }
 
-        void recOp(int clientID) {
-            std::vector<unsigned char> packetIn;
-            std::vector<unsigned char> packetOut;
+    void recOp(int clientID)
+    {
+        std::vector<unsigned char> packetIn;
+        std::vector<unsigned char> packetOut;
 
-            recvMSG(clientID, packetIn);
+        recvMSG(clientID, packetIn);
 
-            e_operacion_filemanager op = unpack<e_operacion_filemanager>(packetIn);
+        e_operacion_filemanager op = unpack<e_operacion_filemanager>(packetIn);
 
-            switch (op) {
-                case FL_CONSTRUCTOR: {
-                    std::string dato;
-                    
-                    int size = unpack<int>(packetIn);
-                    dato.resize(size);
+        switch (op)
+        {
+            case FL_CONSTRUCTOR:
+            {
+                std::string dato;
 
-                    char* d = new char[size];
-                    unpackv<char>(packetIn, d, size);
-                    dato = string(d);
-                    delete[] d;
+                int size = unpack<int>(packetIn);
+                dato.resize(size);
 
-                    fm = new FileManager(dato);
-                    
-                    int ok = 1;
-                    pack(packetOut, ok);
-                } break;
-                
-                default: {
-                    std::cout << "ERROR: operacion no valida\n";
-                } break;
-            };
+                char *d = new char[size];
+                unpackv<char>(packetIn, d, size);
+                dato = string(d);
+                delete[] d;
 
-            sendMSG(clientID, packetOut);
-        }
+                fm = new FileManager(dato);
+
+                int ok = 1;
+                pack(packetOut, ok);
+            }
+                break;
+
+            default:
+            {
+                std::cout << "ERROR: operacion no valida\n";
+            }
+                break;
+        };
+
+        sendMSG(clientID, packetOut);
+    }
 };
 
 #endif // FILEMANAGER_IMP_H

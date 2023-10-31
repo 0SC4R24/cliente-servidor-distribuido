@@ -25,7 +25,8 @@ FileManager::FileManager(string path)
             }
         }
         closedir(dir);
-    } else
+    }
+    else
     {
         /* could not open directory */
         string *f = new string("ERROR: No existe el fichero o directorio");

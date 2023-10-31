@@ -5,7 +5,8 @@
 #include "../../include/utils/tipos.h"
 #include "../../include/filemanager/filemanager_stub.h"
 
-int main (int argc, char** argv) {
+int main(int argc, char **argv)
+{
     FileManager_stub fm1 = FileManager_stub();
 
 

@@ -68,7 +68,9 @@ int main(int argc, char **argv)
 
                     // Enviar informacion del servidor
                     // Comprobar si hay servidores disponibles
-                    if (servers[server].empty()) pack(packet_out, BK_NOSERVERAVAILABLE);
+                    // TODO: Implementar que si no hay servidores, inicie un nuevo thread y que
+                    // TODO: Cuando se conecte un nuevo servidor, notificar al cliente
+                    if (server == SV_NONE || servers[server].empty()) pack(packet_out, BK_NOSERVERAVAILABLE);
                     else
                     {
                         // Seleccionar el primer servidor disponible
@@ -86,13 +88,11 @@ int main(int argc, char **argv)
 
                         // Mostrar informacion del cliente y del servidor
                         std::cout << "BROKER: Cliente conectado" << std::endl;
+                        std::cout << "BROKER: Servidor asignado:" << std::endl;
                         std::cout << "BROKER: IP: " << server_info->ipaddr << std::endl;
                         std::cout << "BROKER: Puerto: " << server_info->port << std::endl;
                         std::cout << "BROKER: Tipo: " << server << std::endl;
                     }
-
-                    // Enviar confirmacion
-                    sendMSG(client_id, packet_out);
                 }
                     break;
 
@@ -130,21 +130,113 @@ int main(int argc, char **argv)
                             break;
                     }
 
-                    // Enviar confirmacion
-                    sendMSG(client_id, packet_out);
-
                     // Mostrar informacion del servidor
-                    std::cout << "BROKER: Servidor registrado" << std::endl;
+                    std::cout << "BROKER: Servidor conectado" << std::endl;
+                    std::cout << "BROKER: Servidor guardado:" << std::endl;
                     std::cout << "BROKER: IP: " << ipaddr << std::endl;
                     std::cout << "BROKER: Puerto: " << port << std::endl;
                     std::cout << "BROKER: Tipo: " << type << std::endl;
                 }
                     break;
 
+                case BK_DELSERVIDOR:
+                {
+                    int port = 0, ipaddr_len = 0;
+                    char *ipaddr = nullptr;
+                    e_tipos_server type = SV_NONE;
+
+                    // Desempaquetar los datos del servidor
+                    ipaddr_len = unpack<int>(packet_in);
+                    ipaddr = new char[ipaddr_len];
+                    unpackv(packet_in, ipaddr, ipaddr_len);
+                    port = unpack<int>(packet_in);
+                    type = unpack<e_tipos_server>(packet_in);
+
+                    // Eliminar el servidor
+                    e_resultado_broker response = BK_NOSERVERFOUND;
+                    switch (type)
+                    {
+                        case SV_MULTMATRIX:
+                        case SV_FILEMANAGER:
+                        {
+                            for (auto &server: servers[type])
+                            {
+                                if (strcmp(ipaddr, server->ipaddr) == 0 && port == server->port)
+                                {
+                                    // Eliminar el servidor
+                                    servers[type].remove(server);
+                                    delete[] server->ipaddr;
+                                    delete server;
+
+                                    // Guardar estado de la peticion
+                                    response = BK_OK;
+                                    break;
+                                }
+                            }
+                        }
+                            break;
+
+                        case SV_BOTH:
+                        {
+                            for (auto &server: servers[SV_MULTMATRIX])
+                            {
+                                if (strcmp(ipaddr, server->ipaddr) == 0 && port == server->port)
+                                {
+                                    // Eliminar el servidor
+                                    servers[SV_MULTMATRIX].remove(server);
+                                    delete[] server->ipaddr;
+                                    delete server;
+
+                                    // Guardar estado de la peticion
+                                    response = BK_OK;
+                                }
+                            }
+
+                            if (response != BK_OK)
+                                for (auto &server: servers[SV_FILEMANAGER])
+                                {
+                                    if (strcmp(ipaddr, server->ipaddr) == 0 && port == server->port)
+                                    {
+                                        // Eliminar el servidor
+                                        servers[SV_FILEMANAGER].remove(server);
+                                        delete[] server->ipaddr;
+                                        delete server;
+
+                                        // Guardar estado de la peticion
+                                        response = BK_OK;
+                                    }
+                                }
+                        }
+                            break;
+
+                        default:
+                            std::cout << "BROKER: Recibido paquete de servidor desconocido" << std::endl;
+                            response = BK_ERROR;
+                            break;
+                    }
+
+                    // Comprobar si se ha eliminado el servidor y mostrar los datos
+                    if (response == BK_OK)
+                    {
+                        std::cout << "BROKER: Servidor eliminado:" << std::endl;
+                        std::cout << "BROKER: IP: " << ipaddr << std::endl;
+                        std::cout << "BROKER: Puerto: " << port << std::endl;
+                        std::cout << "BROKER: Tipo: " << type << std::endl;
+                    }
+
+                    // Enviar confirmacion
+                    pack(packet_out, response);
+                }
+                    break;
+
                 default:
                     std::cout << "BROKER: Recibido paquete desconocido" << std::endl;
+                    pack(packet_out, BK_ERROR);
                     break;
             }
+
+            // Enviar confirmacion
+            sendMSG(client_id, packet_out);
         }
     }
 

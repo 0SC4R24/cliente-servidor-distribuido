@@ -28,8 +28,6 @@ public:
     {
         // Definir paquetes
         std::vector<unsigned char> packet_in, packet_out;
-                    std::cout << "MultmatrixImp: refdhkds inicializado correctamente" << std::endl;
-
 
         // Recibir paquete y desempaquetar la operation
         recvMSG(client_id, packet_in);
@@ -39,8 +37,6 @@ public:
         {
             case MM_CONSTRUCTOR:
             {
-                    std::cout << "MultmatrixImp:Inicio" << std::endl;
-
                 if (this->multmatrix == nullptr)
                 {
                     this->multmatrix = new multMatrix();

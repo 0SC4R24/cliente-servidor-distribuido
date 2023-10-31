@@ -24,7 +24,7 @@ private:
     connection_t server_connection = {};
 
     // Definir ip y port de la conexion
-    std::string ip = "10.1.205.164";
+    std::string ip = "127.0.0.1";
     int port = 10002;
 
 public:
@@ -46,10 +46,20 @@ public:
         closeConnection(this->server_connection.serverId);
 
         // Procesar la respuesta del broker
-        if (unpack<e_resultado_broker>(packet_in) != BK_OK)
+        switch (unpack<e_resultado_broker>(packet_in))
         {
-            std::cout << "MultmatrixStub: No se ha podido conectar con el servidor" << std::endl;
-            exit(1);
+            case BK_OK:
+                std::cout << "MultmatrixStub: Conectado con el broker" << std::endl;
+                break;
+
+            case BK_NOSERVERAVAILABLE:
+                // TODO: Implementar que espere a que un servidor se registre en el broker
+                std::cout << "MultmatrixStub: No hay servidores disponibles" << std::endl;
+                exit(2);
+
+            case BK_ERROR:
+                std::cout << "MultmatrixStub: La operacion enviada no se reconoce" << std::endl;
+                exit(3);
         }
 
         // Procesar los datos del servidor
