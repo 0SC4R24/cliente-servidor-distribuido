@@ -32,21 +32,21 @@ add_executable(
 )
 target_link_libraries(mm_client pthread)
 
-project(filemanager_server LANGUAGES CXX)
+project(fm_server LANGUAGES CXX)
 add_executable(
-        filemanager_server
+        fm_server
         source/filemanager/fm_server.cpp
         source/filemanager/filemanager.cpp
         source/utils/socket.cpp
         include/filemanager/filemanager_imp.h
 )
-target_link_libraries(filemanager_server pthread)
+target_link_libraries(fm_server pthread)
 
-project(filemanager_client LANGUAGES CXX)
+project(fm_client LANGUAGES CXX)
 add_executable(
-        filemanager_client
+        fm_client
         source/filemanager/fm_client.cpp
         source/utils/socket.cpp
         include/filemanager/filemanager_stub.h
 )
-target_link_libraries(filemanager_client pthread)
+target_link_libraries(fm_client pthread)
