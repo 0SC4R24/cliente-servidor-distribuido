@@ -1,5 +1,6 @@
 # Práctica 1: Objetos remotos
 En esta primera práctica se suministran dos programas con la siguiente funcionalidad:
+[![](https://cdn.loom.com/sessions/thumbnails/d05ad20900f1463ab9c17f115e0742b4-with-play.gif)](https://www.loom.com/share/d05ad20900f1463ab9c17f115e0742b4)
 
 ## Programa 1: File Manager
 Este programa sirve para listar los archivos de un directorio local, y realizar funciones básicas de
