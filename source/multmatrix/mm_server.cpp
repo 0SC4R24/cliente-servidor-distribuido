@@ -35,6 +35,10 @@ int main(int argc, char **argv)
     std::string ipaddr = "127.0.0.1", ipbroker = "127.0.0.1";
     int ipport = 10001, ipbrokerport = 10002;
 
+    // Inicializacion del servidor
+    int socket = initServer(ipport);
+    std::cout << "MM_Server: Creando instancia del servidor. Iniciando..." << std::endl;
+
     // Manejo de señales para cerrar la conexion
     signal(SIGINT, sigstop);
 
@@ -61,13 +65,9 @@ int main(int argc, char **argv)
     }
 
     // Cerrar la conexion con el broker
-    closeConnection(broker.serverId);
     std::cout << "MM_Server: Servidor registrado en el broker. Continuando..." << std::endl;
     std::cout << "MM_Server: Terminando registro en el broker. Cerrando conexion..." << std::endl;
-
-    // Inicializacion del servidor
-    int socket = initServer(ipport);
-    std::cout << "MM_Server: Creando instancia del servidor. Iniciando..." << std::endl;
+    closeConnection(broker.serverId);
 
     // Bucle principal
     while (RUNNING)
@@ -77,7 +77,7 @@ int main(int argc, char **argv)
         {
             // Crear un nuevo thread para atender al cliente
             std::cout << "MM_Server: Nuevo cliente conectado. Creando thread para atenderlo..." << std::endl;
-            std::thread *thread = new std::thread(atiende_cliente, getLastClientID());
+            new std::thread(atiende_cliente, getLastClientID());
         }
     }
 

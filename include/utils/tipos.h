@@ -42,7 +42,8 @@ typedef enum
     BK_OK = 1,
     BK_ERROR = 2,
     BK_NOSERVERAVAILABLE = 3,
-    BK_NOSERVERFOUND = 4
+    BK_NOSERVERFOUND = 4,
+    BK_WAIT = 5
 } e_resultado_broker;
 
 typedef enum

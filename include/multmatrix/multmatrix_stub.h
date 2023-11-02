@@ -42,24 +42,38 @@ public:
 
         // Recibir respuesta del broker y cerrar la conexion
         recvMSG(this->server.serverId, packet_in);
-        closeConnection(this->server.serverId);
 
         // Procesar la respuesta del broker
+        int exit_code = 0;
         switch (unpack<e_resultado_broker>(packet_in))
         {
             case BK_OK:
                 std::cout << "MultmatrixStub: Conectado con el broker. Continuando..." << std::endl;
                 break;
 
+            case BK_WAIT:
+                // Esperar a que haya un servidor disponible
+                std::cout << "MultmatrixStub: No hay servidores disponibles. Esperando..." << std::endl;
+                recvMSG(this->server.serverId, packet_in);
+                std::cout << "MultmatrixStub: Servidor disponible. Continuando..." << std::endl;
+                break;
+
             case BK_NOSERVERAVAILABLE:
-                // TODO: Implementar que espere a que un servidor se registre en el broker
                 std::cout << "MultmatrixStub: No hay servidores disponibles. Terminando..." << std::endl;
-                exit(2);
+                exit_code = 2;
+                break;
 
             default:
                 std::cout << "MultmatrixStub: La operacion enviada no se reconoce. Terminando..." << std::endl;
-                exit(3);
+                exit_code = 3;
+                break;
         }
+
+        // Cerrar la conexion con el broker
+        closeConnection(this->server.serverId);
+
+        // Salir si no se ha podido conectar con el broker
+        if (exit_code) exit(exit_code);
 
         // Procesar los datos del servidor
         t_server *servidor_solicitado = deserializar_server(packet_in);
