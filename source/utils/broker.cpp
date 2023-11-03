@@ -64,7 +64,7 @@ int main(int argc, char **argv)
         else
         {
             // Variables
-            int client_id = getLastClientID(), respuesta = BK_ERROR;
+            int client_id = getLastClientID();
 
             // Definir paquetes
             std::vector<unsigned char> packet_in, packet_out;
@@ -95,12 +95,12 @@ int main(int argc, char **argv)
 
                     // Enviar informacion del servidor si esta disponible
                     // Comprobar si hay servidores disponibles
-                    if (tipo_servidor_solicitado == SV_NONE) respuesta = BK_NOSERVERAVAILABLE;
+                    if (tipo_servidor_solicitado == SV_NONE) pack(packet_out, BK_NOSERVERAVAILABLE);
                     else if (servidores[tipo_servidor_solicitado].empty())
                     {
                         std::cout << "BROKER: No hay servidores disponibles. Apuntando cliente en la cola..." << std::endl;
                         new std::thread(notificar_cliente, client_id, &servidores[tipo_servidor_solicitado]);
-                        respuesta = BK_WAIT;
+                        pack(packet_out, BK_WAIT);
                     }
                     else
                     {
@@ -109,7 +109,7 @@ int main(int argc, char **argv)
                         servidores[tipo_servidor_solicitado].pop_front();
 
                         // Enviar informacion del servidor
-                        respuesta = BK_OK;
+                        pack(packet_out, BK_OK);
                         serializar_server(packet_out, *server_info);
 
                         // Meter el servidor al final de la lista
@@ -129,6 +129,7 @@ int main(int argc, char **argv)
                 {
                     // Desempaquetar los datos del servidor
                     t_server *datos_servidor_solicitado = deserializar_server_con_id(packet_in, client_id);
+                    e_resultado_broker resultado = BK_ERROR;
 
                     // Guardar informacion del servidor
                     switch (datos_servidor_solicitado->type)
@@ -136,7 +137,7 @@ int main(int argc, char **argv)
                         case SV_MULTMATRIX:
                         case SV_FILEMANAGER:
                             servidores[datos_servidor_solicitado->type].push_back(datos_servidor_solicitado);
-                            respuesta = BK_OK;
+                            resultado = BK_OK;
                             break;
 
                         case SV_BOTH:
@@ -146,7 +147,7 @@ int main(int argc, char **argv)
                             // TODO: Revisar que si elimino una referencia de una lista, se elimina de la otra
                             servidores[SV_MULTMATRIX].push_back(datos_servidor_solicitado);
                             servidores[SV_FILEMANAGER].push_back(datos_servidor_solicitado);
-                            respuesta = BK_OK;
+                            resultado = BK_OK;
                             break;
 
                         default:
@@ -154,8 +155,11 @@ int main(int argc, char **argv)
                             break;
                     }
 
+                    // Empaquetar el resultado
+                    pack(packet_out, resultado);
+
                     // Mostrar informacion del servidor
-                    if (respuesta == BK_OK)
+                    if (resultado == BK_OK)
                     {
                         std::cout << "BROKER: Servidor conectado" << std::endl;
                         std::cout << "BROKER: Servidor guardado:" << std::endl;
@@ -171,6 +175,7 @@ int main(int argc, char **argv)
                 {
                     // Desempaquetar los datos del servidor
                     t_server *datos_servidor_eliminar = deserializar_server_con_id(packet_in, client_id);
+                    e_resultado_broker resultado = BK_ERROR;
 
                     // Eliminar el servidor
                     switch (datos_servidor_eliminar->type)
@@ -191,7 +196,7 @@ int main(int argc, char **argv)
                                     delete server;
 
                                     // Guardar estado de la peticion
-                                    respuesta = BK_OK;
+                                    resultado = BK_OK;
                                     break;
                                 }
                             }
@@ -203,8 +208,11 @@ int main(int argc, char **argv)
                             break;
                     }
 
+                    // Empaquetar el resultado
+                    pack(packet_out, resultado);
+
                     // Comprobar si se ha eliminado el servidor y mostrar los datos
-                    if (respuesta == BK_OK)
+                    if (resultado == BK_OK)
                     {
                         std::cout << "BROKER: Servidor eliminado:" << std::endl;
                         std::cout << "BROKER: IP: " << datos_servidor_eliminar->ipaddr << std::endl;
@@ -221,11 +229,11 @@ int main(int argc, char **argv)
 
                 default:
                     std::cout << "BROKER: Tipos de broker desconocido. Ignorando..." << std::endl;
+                    pack(packet_out, BK_ERROR);
                     break;
             }
 
             // Enviar confirmacion
-            pack(packet_out, respuesta);
             sendMSG(client_id, packet_out);
         }
     }
