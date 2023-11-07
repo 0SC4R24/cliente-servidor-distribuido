@@ -21,6 +21,26 @@ int main(int argc, char **argv)
     unsigned long int fileLen = 0;
     fm->readFile(&(*(vfiles->at(0)))[0], data, fileLen);
     cout << data;
+    cout << "Escribiendo el primer fichero del directorio de prueba:\n";
+    fm->writeFile(&(*(vfiles->at(0)))[0], data, fileLen);
+
+    /*
+    cout << "Leyendo el segundo fichero del directorio de prueba:\n";
+    data = nullptr;
+    fileLen = 0;
+    fm->readFile(&(*(vfiles->at(1)))[0], data, fileLen);
+    cout << data;
+    cout << "Escribiendo el segundo fichero del directorio de prueba:\n";
+    fm->writeFile(&(*(vfiles->at(1)))[0], data, fileLen);
+
+    cout << "Leyendo el tercer fichero del directorio de prueba:\n";
+    data = nullptr;
+    fileLen = 0;
+    fm->readFile(&(*(vfiles->at(2)))[0], data, fileLen);
+    cout << data;
+    cout << "Escribiendo el tercer fichero del directorio de prueba:\n";
+    fm->writeFile(&(*(vfiles->at(2)))[0], data, fileLen);
+    */
 
     cout << "Liberando lista de ficheros:\n";
     fm->freeListedFiles(vfiles);
