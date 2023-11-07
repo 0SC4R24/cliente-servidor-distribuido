@@ -78,6 +78,24 @@ public:
         sendStringOp(serverConnection.serverId, path, FL_CONSTRUCTOR);
     };
 
+    ~FileManager_stub()
+    {
+        std::vector<unsigned char> mensaje;
+        std::vector<unsigned char> res;
+        
+        pack(mensaje, FL_DESTRUCTOR);
+        sendMSG(serverConnection.serverId, mensaje);
+        recvMSG(serverConnection.serverId, res);
+        
+        int ok=unpack<int>(res);
+        if(!ok)
+        {
+            std::cout<<"ERROR "<<__FILE__<<":"<<__LINE__<<" \n";
+        }
+        
+        closeConnection(serverConnection.serverId);
+    }
+
     vector<string *> *listFiles()
     {
         vector<string *> *flist = new vector<string *>();
@@ -96,23 +114,58 @@ public:
         }
         else
         {
-            int vectorSize = unpack<int>(res);
-            cout << "SIZE: " << vectorSize << endl;
-
-            for (int i = 0; i < vectorSize; i++)
-            {
-                string dato;
-                int strSize = unpack<int>(res);
-                char* d = new char[strSize];
-                unpackv<char>(res, d, strSize);
-                dato = string(d);
-                cout << "FICHERO: " << dato << endl;
-                delete[] d;
-
-                flist->push_back(&dato);
-            }
+            deserializar_lista_ficheros(res, flist);
         }
 
         return flist;
+    }
+
+    void freeListedFiles(vector<string *> *fileList)
+    {
+        std::vector<unsigned char> mensaje;
+        std::vector<unsigned char> res;
+
+        pack(mensaje, FL_FREELISTEDFILES);
+        serializar_lista_ficheros(mensaje, fileList);
+
+        sendMSG(serverConnection.serverId, mensaje);
+        recvMSG(serverConnection.serverId, res);
+
+        int ok = unpack<int>(res);
+
+        if (!ok)
+        {
+            std::cout << "ERROR " << __FILE__ << ":" << __LINE__ << "\n";
+        }
+    }
+
+    void readFile(char *fileName, char *&data, unsigned long int &dataLength)
+    {
+        std::vector<unsigned char> mensaje;
+        std::vector<unsigned char> res;
+
+        string file = new string(fileName);
+        int size = file.length() + 1;
+        pack(mensaje, FL_READFILE);
+        pack(mensaje, size);
+        packv(mensaje, file.c_str(), size);
+
+        sendMSG(serverConnection.serverId, mensaje);
+        recvMSG(serverConnection.serverId, res);
+
+        int ok = unpack<int>(res);
+        if (!ok)
+        {
+            std::cout << "ERROR " << __FILE__ << ":" << __LINE__ << "\n";
+        }
+        else
+        {
+            int strSize = unpack<int>(res);
+            dataLength = strSize;
+            char *d = new char[size];
+            unpackv<char>(res, d, size);
+            data = d;
+            delete[] d;
+        }
     }
 };
