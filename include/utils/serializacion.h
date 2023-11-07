@@ -93,4 +93,37 @@ t_server *deserializar_server_con_id(std::vector<unsigned char> &packet, int ser
     return s;
 }
 
+//
+//  Created by Oscar on 07/11/2023
+//
+void serializar_lista_ficheros(std::vector<unsigned char> &packet, std::vector<string *> *flist)
+{
+    int listSize = flist->size();
+    pack(packet, listSize);
+    
+    for (int i = 0; i < listSize; i++)
+    {
+        string dato = string(flist->at(i)->c_str());
+        int datoSize = dato.length() + 1;
+        pack(packet, datoSize);
+        packv(packet, dato.c_str(), datoSize);
+    }
+}
+
+void deserializar_lista_ficheros(std::vector<unsigned char> &packet, std::vector<string *> *flist)
+{
+    int listSize = unpack<int>(packet);
+    
+    for (int i = 0; i < listSize; i++)
+    {
+        int strSize = unpack<int>(packet);
+        char* d = new char[strSize];
+        unpackv<char>(packet, d, strSize);
+        string *dato = new string(d);
+        delete[] d;
+
+        flist->push_back(dato);
+    }
+}
+
 #endif //MULTMATRIX_SERIALIZACION_H
