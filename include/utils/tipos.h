@@ -80,7 +80,8 @@ typedef struct
 
 typedef enum
 {
-    FL_CONSTRUCTOR = 1
+    FL_CONSTRUCTOR = 1,
+    FL_LISTFILES = 2
 } e_operacion_filemanager;
 
 #endif //FILEMANAGER_TIPOS_H

@@ -54,7 +54,6 @@ std::string reciveStringOp(int serverId, e_operacion_filemanager op)
     else
     {
         int size = unpack<int>(res);
-        dato.resize(size);
 
         char *d = new char[size];
         unpackv<char>(res, d, size);
@@ -68,27 +67,52 @@ std::string reciveStringOp(int serverId, e_operacion_filemanager op)
 class FileManager_stub
 {
 private:
-    std::string ip = "172.31.63.230";
+    std::string ip = "172.31.49.180";
     int puerto = 10001;
     connection_t serverConnection;
 public:
-    FileManager_stub()
+    FileManager_stub(string path)
     {
         serverConnection = initClient(ip, puerto);
 
-        std::vector<unsigned char> mensaje;
-        std::vector<unsigned char> res;
+        sendStringOp(serverConnection.serverId, path, FL_CONSTRUCTOR);
+    };
 
-        pack(mensaje, FL_CONSTRUCTOR);
+    vector<string *> *listFiles()
+    {
+        vector<string *> *flist = new vector<string *>();
+        
+        vector<unsigned char> mensaje;
+        vector<unsigned char> res;
 
+        pack(mensaje, FL_LISTFILES);
         sendMSG(serverConnection.serverId, mensaje);
         recvMSG(serverConnection.serverId, res);
 
         int ok = unpack<int>(res);
-
-        if (!ok)
+        if (ok != 1)
         {
-            std::cout << "ERROR " << __FILE__ << ":" << __LINE__ << " error instanciando FileManager\n";
+            cout << "ERROR " << __FILE__ << ":" << __LINE__ << "\n";
         }
-    };
+        else
+        {
+            int vectorSize = unpack<int>(res);
+            cout << "SIZE: " << vectorSize << endl;
+
+            for (int i = 0; i < vectorSize; i++)
+            {
+                string dato;
+                int strSize = unpack<int>(res);
+                char* d = new char[strSize];
+                unpackv<char>(res, d, strSize);
+                dato = string(d);
+                cout << "FICHERO: " << dato << endl;
+                delete[] d;
+
+                flist->push_back(&dato);
+            }
+        }
+
+        return flist;
+    }
 };
