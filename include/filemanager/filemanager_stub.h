@@ -67,7 +67,7 @@ std::string reciveStringOp(int serverId, e_operacion_filemanager op)
 class FileManager_stub
 {
 private:
-    std::string ip = "172.31.49.180";
+    std::string ip = "192.168.1.80";
     int puerto = 10001;
     connection_t serverConnection;
 public:
@@ -144,11 +144,11 @@ public:
         std::vector<unsigned char> mensaje;
         std::vector<unsigned char> res;
 
-        string file = new string(fileName);
+        string file = string(fileName);
         int size = file.length() + 1;
         pack(mensaje, FL_READFILE);
         pack(mensaje, size);
-        packv(mensaje, file.c_str(), size);
+        packv(mensaje, fileName, size);
 
         sendMSG(serverConnection.serverId, mensaje);
         recvMSG(serverConnection.serverId, res);
@@ -160,12 +160,34 @@ public:
         }
         else
         {
-            int strSize = unpack<int>(res);
+            unsigned long int strSize = unpack<unsigned long int>(res);
             dataLength = strSize;
-            char *d = new char[size];
-            unpackv<char>(res, d, size);
-            data = d;
-            delete[] d;
+            data = new char[dataLength];
+            
+            unpackv<char>(res, data, dataLength);
+        }
+    }
+
+    void writeFile(char *fileName, char *data, unsigned long int dataLength)
+    {
+        std::vector<unsigned char> mensaje;
+        std::vector<unsigned char> res;
+
+        string file = string(fileName);
+        int size = file.length() + 1;
+        pack(mensaje, FL_WRITEFILE);
+        pack(mensaje, size);
+        packv(mensaje, fileName, size);
+        pack(mensaje, dataLength);
+        packv(mensaje, data, dataLength);
+
+        sendMSG(serverConnection.serverId, mensaje);
+        recvMSG(serverConnection.serverId, res);
+
+        int ok = unpack<int>(res);
+        if (!ok)
+        {
+            std::cout << "ERROR " << __FILE__ << ":" << __LINE__ << "\n";
         }
     }
 };
