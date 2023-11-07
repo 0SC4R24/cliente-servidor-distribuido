@@ -47,7 +47,6 @@ public:
         {
             case FL_CONSTRUCTOR:
             {
-                cout << "CREANDO CONSTRUCTOR" << endl;
                 std::string dato;
 
                 int size = unpack<int>(packetIn);
@@ -64,14 +63,12 @@ public:
             } break;
             case FL_DESTRUCTOR:
             {
-                cout << "DESTRUYENDO FILEMANAGER" << endl;
                 delete fm;
 				conexionCerrada = true;
                 pack<int>(packetOut, 1);
             } break;
             case FL_LISTFILES:
             {
-                cout << "LISTANDO ARCHIVOS" << endl;
                 vector<string *> *flist;
                 flist = fm->listFiles();
                 pack(packetOut, 1);
@@ -79,7 +76,6 @@ public:
             } break;
             case FL_FREELISTEDFILES:
             {
-                cout << "LIBERANDO LISTA DE ARCHIVOS" << endl;
                 vector<string *> *flist = new vector<string *>();
                 deserializar_lista_ficheros(packetIn, flist);
                 fm->freeListedFiles(flist);
@@ -87,17 +83,30 @@ public:
             } break;
             case FL_READFILE:
             {
-                cout << "LEYENDO ARCHIVO" << endl;
-                // Leer fichero
                 int fileSize = unpack<int>(packetIn);
-                char *fileName;
+                char *fileName = new char[fileSize];
                 unpackv<char>(packetIn, fileName, fileSize);
-                
-                pack(packetOut, 1);
+
+                unsigned long int dataLength;
+                char *data;
+                fm->readFile(fileName, data, dataLength);
+
+                pack(packetOut, 1); 
+                pack(packetOut, dataLength);
+                packv(packetOut, data, dataLength);
             } break;
             case FL_WRITEFILE:
             {
-                // Escribir fichero
+                int fileNameSize = unpack<int>(packetIn);
+                char* fileName = new char[fileNameSize];
+                unpackv<char>(packetIn, fileName, fileNameSize);
+
+                unsigned long int dataLength = unpack<unsigned long int>(packetIn);
+                char* data = new char[dataLength];
+                unpackv<char>(packetIn, data, dataLength);
+
+                fm->writeFile(fileName, data, dataLength);
+
                 pack(packetOut, 1);
             } break;
             default:
