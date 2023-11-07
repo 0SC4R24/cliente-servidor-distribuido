@@ -62,22 +62,43 @@ public:
                 int ok = 1;
                 pack(packetOut, ok);
             } break;
+            case FL_DESTRUCTOR:
+            {
+                cout << "DESTRUYENDO FILEMANAGER" << endl;
+                delete fm;
+				conexionCerrada = true;
+                pack<int>(packetOut, 1);
+            } break;
             case FL_LISTFILES:
             {
                 cout << "LISTANDO ARCHIVOS" << endl;
                 vector<string *> *flist;
                 flist = fm->listFiles();
                 pack(packetOut, 1);
-                int size = flist->size();
-                pack<int>(packetOut, size);
+                serializar_lista_ficheros(packetOut, flist);
+            } break;
+            case FL_FREELISTEDFILES:
+            {
+                cout << "LIBERANDO LISTA DE ARCHIVOS" << endl;
+                vector<string *> *flist = new vector<string *>();
+                deserializar_lista_ficheros(packetIn, flist);
+                fm->freeListedFiles(flist);
+                pack(packetOut, 1);
+            } break;
+            case FL_READFILE:
+            {
+                cout << "LEYENDO ARCHIVO" << endl;
+                // Leer fichero
+                int fileSize = unpack<int>(packetIn);
+                char *fileName;
+                unpackv<char>(packetIn, fileName, fileSize);
                 
-                for (int i = 0; i < size; i++)
-                {
-                    string dato = string(flist->at(i)->c_str());
-                    int datoSize = dato.length() + 1;
-                    pack(packetOut, datoSize);
-                    packv(packetOut, dato.c_str(), datoSize);
-                }
+                pack(packetOut, 1);
+            } break;
+            case FL_WRITEFILE:
+            {
+                // Escribir fichero
+                pack(packetOut, 1);
             } break;
             default:
             {
