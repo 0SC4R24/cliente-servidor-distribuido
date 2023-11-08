@@ -26,7 +26,7 @@ private:
 
     // Definir ip y port de la conexion
     std::string ipaddr = "127.0.0.1";
-    int ipport = 10002;
+    int ipport = 10000;
 
 public:
     MultmatrixStub()

@@ -69,7 +69,7 @@ class FileManager_stub
 {
 private:
     std::string ip = "127.0.0.1";
-    int puerto = 10001;
+    int puerto = 10000;
     connection_t serverConnection;
 public:
     FileManager_stub(string path)
@@ -81,7 +81,7 @@ public:
         std::vector<unsigned char> packet_out, packet_in;
 
         // Iniciar conexion con el broker
-        prepara_y_envia_cliente_broker(this->serverConnection.serverId, packet_out, CL_MULTMATRIX);
+        prepara_y_envia_cliente_broker(this->serverConnection.serverId, packet_out, CL_FILEMANAGER);
 
         // Recibir respuesta del broker y cerrar la conexion
         recvMSG(this->serverConnection.serverId, packet_in);

@@ -33,7 +33,7 @@ int main(int argc, char **argv)
 {
     // Variables del servidor
     std::string ipaddr = "127.0.0.1", ipbroker = "127.0.0.1";
-    int ipport = 10001, ipbrokerport = 10002;
+    int ipport = 10002, ipbrokerport = 10000;
 
     // Inicializacion del servidor
     int socket = initServer(ipport);

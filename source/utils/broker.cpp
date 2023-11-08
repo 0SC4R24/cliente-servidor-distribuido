@@ -54,7 +54,7 @@ int main(int argc, char **argv)
     // Manejo de señales para cerrar la conexion
     signal(SIGINT, sigstop);
 
-    int socket = initServer(10002);
+    int socket = initServer(10000);
     std::map<e_tipos_server, std::list<t_server *>> servidores;
 
     // Bucle principal
