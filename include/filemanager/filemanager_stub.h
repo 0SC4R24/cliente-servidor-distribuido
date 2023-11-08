@@ -12,6 +12,7 @@
 #include "../utils/tipos.h"
 #include "../utils/socket.h"
 #include "../utils/serializacion.h"
+#include "../utils/peticiones.h"
 
 void sendStringOp(int serverId, std::string dato, e_operacion_filemanager op)
 {
@@ -67,39 +68,97 @@ std::string reciveStringOp(int serverId, e_operacion_filemanager op)
 class FileManager_stub
 {
 private:
-    std::string ip = "192.168.1.80";
+    std::string ip = "127.0.0.1";
     int puerto = 10001;
     connection_t serverConnection;
 public:
     FileManager_stub(string path)
     {
-        serverConnection = initClient(ip, puerto);
+        // Definir conexion con el broker
+        this->serverConnection = initClient(this->ip, this->puerto);
 
+        // Definir paquetes
+        std::vector<unsigned char> packet_out, packet_in;
+
+        // Iniciar conexion con el broker
+        prepara_y_envia_cliente_broker(this->serverConnection.serverId, packet_out, CL_MULTMATRIX);
+
+        // Recibir respuesta del broker y cerrar la conexion
+        recvMSG(this->serverConnection.serverId, packet_in);
+
+        // Procesar la respuesta del broker
+        int exit_code = 0;
+        switch (unpack<e_resultado_broker>(packet_in))
+        {
+            case BK_OK:
+                std::cout << "FileManager: Conectado con el broker. Continuando..." << std::endl;
+                break;
+
+            case BK_WAIT:
+                // Esperar a que haya un servidor disponible
+                std::cout << "FileManager: No hay servidores disponibles. Esperando..." << std::endl;
+                recvMSG(this->serverConnection.serverId, packet_in);
+                std::cout << "FileManager: Servidor disponible. Continuando..." << std::endl;
+                break;
+
+            case BK_NOSERVERAVAILABLE:
+                std::cout << "FileManager: No hay servidores disponibles. Terminando..." << std::endl;
+                exit_code = 2;
+                break;
+
+            default:
+                std::cout << "FileManager: La operacion enviada no se reconoce. Terminando..." << std::endl;
+                exit_code = 3;
+                break;
+        }
+
+        // Cerrar la conexion con el broker
+        closeConnection(this->serverConnection.serverId);
+
+        // Salir si no se ha podido conectar con el broker
+        if (exit_code) exit(exit_code);
+
+        // Procesar los datos del servidor
+        t_server *servidor_solicitado = deserializar_server(packet_in);
+
+        // Init de la conexion con la implementacion
+        this->serverConnection = initClient(servidor_solicitado->ipaddr, servidor_solicitado->port);
+
+        // Mostar mensaje de conexion y datos del servidor
+        std::cout << "FileManager: Conectado con el servidor" << std::endl;
+        std::cout << "FileManager: IP: " << servidor_solicitado->ipaddr << std::endl;
+        std::cout << "FileManager: Port: " << servidor_solicitado->port << std::endl;
+
+        // Enviar operacion al servidor
         sendStringOp(serverConnection.serverId, path, FL_CONSTRUCTOR);
+
+        // Liberar memoria
+        delete[] servidor_solicitado->ipaddr;
+        delete servidor_solicitado;
     };
 
     ~FileManager_stub()
     {
         std::vector<unsigned char> mensaje;
         std::vector<unsigned char> res;
-        
+
         pack(mensaje, FL_DESTRUCTOR);
         sendMSG(serverConnection.serverId, mensaje);
         recvMSG(serverConnection.serverId, res);
-        
-        int ok=unpack<int>(res);
-        if(!ok)
+
+        int ok = unpack<int>(res);
+        if (!ok)
         {
-            std::cout<<"ERROR "<<__FILE__<<":"<<__LINE__<<" \n";
+            std::cout << "ERROR " << __FILE__ << ":" << __LINE__ << " \n";
         }
-        
+
         closeConnection(serverConnection.serverId);
     }
 
     vector<string *> *listFiles()
     {
         vector<string *> *flist = new vector<string *>();
-        
+
         vector<unsigned char> mensaje;
         vector<unsigned char> res;
 
@@ -163,7 +222,7 @@ public:
             unsigned long int strSize = unpack<unsigned long int>(res);
             dataLength = strSize;
             data = new char[dataLength];
-            
+
             unpackv<char>(res, data, dataLength);
         }
     }
