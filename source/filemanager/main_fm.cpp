@@ -1,6 +1,6 @@
 #include <iostream>
 
-#include "../../include/filemanager/filemanager.h"
+#include "../../include/filemanager/filemanager_stub.h"
 
 int main(int argc, char **argv)
 {
