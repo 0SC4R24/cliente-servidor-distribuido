@@ -13,9 +13,9 @@
 #include "../filemanager/filemanager.h"
 
 template<typename T>
-inline void pack(std::vector<unsigned char> &packet, T data)
+inline void pack(std::vector<unsigned char>&packet, T data)
 {
-    auto *ptr = (unsigned char *) &data;
+    auto* ptr = (unsigned char *)&data;
     int dsize = sizeof(T), init = packet.size();
 
     packet.resize(init + dsize);
@@ -23,9 +23,9 @@ inline void pack(std::vector<unsigned char> &packet, T data)
 }
 
 template<typename T>
-inline T unpack(std::vector<unsigned char> &packet)
+inline T unpack(std::vector<unsigned char>&packet)
 {
-    T *ptr = (T *) packet.data();
+    T* ptr = (T *)packet.data();
     T data = ptr[0];
     int dsize = sizeof(T), init = packet.size();
 
@@ -36,25 +36,25 @@ inline T unpack(std::vector<unsigned char> &packet)
 }
 
 template<typename T>
-inline void packv(std::vector<unsigned char> &packet, T *arr, int size)
+inline void packv(std::vector<unsigned char>&packet, T* arr, int size)
 {
     for (int i = 0; i < size; i++) pack(packet, arr[i]);
 }
 
 template<typename T>
-inline void unpackv(std::vector<unsigned char> &packet, T *arr, int size)
+inline void unpackv(std::vector<unsigned char>&packet, T* arr, int size)
 {
     for (int i = 0; i < size; i++) arr[i] = unpack<T>(packet);
 }
 
-void serializar_matrix(std::vector<unsigned char> &packet, matrix_t *matrix)
+void serializar_matrix(std::vector<unsigned char>&packet, matrix_t* matrix)
 {
     pack(packet, matrix->rows);
     pack(packet, matrix->cols);
     packv(packet, matrix->data, matrix->rows * matrix->cols);
 }
 
-void deserializar_matrix(std::vector<unsigned char> &packet, matrix_t *matrix)
+void deserializar_matrix(std::vector<unsigned char>&packet, matrix_t* matrix)
 {
     matrix->rows = unpack<int>(packet);
     matrix->cols = unpack<int>(packet);
@@ -62,22 +62,22 @@ void deserializar_matrix(std::vector<unsigned char> &packet, matrix_t *matrix)
     unpackv(packet, matrix->data, matrix->rows * matrix->cols);
 }
 
-void serializar_char_array(std::vector<unsigned char> &packet, const char *arr, int size)
+void serializar_char_array(std::vector<unsigned char>&packet, const char* arr, int size)
 {
     pack(packet, size);
     packv(packet, arr, size);
 }
 
-void serializar_server(std::vector<unsigned char> &packet, t_server &server)
+void serializar_server(std::vector<unsigned char>&packet, t_server&server)
 {
     serializar_char_array(packet, server.ipaddr, server.ipaddr_len);
     pack(packet, server.port);
     pack(packet, server.type);
 }
 
-t_server *deserializar_server(std::vector<unsigned char> &packet)
+t_server* deserializar_server(std::vector<unsigned char>&packet)
 {
-    t_server *server = new t_server;
+    t_server* server = new t_server;
     server->ipaddr_len = unpack<int>(packet);
     server->ipaddr = new char[server->ipaddr_len];
     unpackv(packet, server->ipaddr, server->ipaddr_len);
@@ -86,9 +86,9 @@ t_server *deserializar_server(std::vector<unsigned char> &packet)
     return server;
 }
 
-t_server *deserializar_server_con_id(std::vector<unsigned char> &packet, int server_id)
+t_server* deserializar_server_con_id(std::vector<unsigned char>&packet, int server_id)
 {
-    t_server *s = deserializar_server(packet);
+    t_server* s = deserializar_server(packet);
     s->server_id = server_id;
     return s;
 }
@@ -96,11 +96,11 @@ t_server *deserializar_server_con_id(std::vector<unsigned char> &packet, int ser
 //
 //  Created by Oscar on 07/11/2023
 //
-void serializar_lista_ficheros(std::vector<unsigned char> &packet, std::vector<string *> *flist)
+void serializar_lista_ficheros(std::vector<unsigned char>&packet, std::vector<string *>* flist)
 {
     int listSize = flist->size();
     pack(packet, listSize);
-    
+
     for (int i = 0; i < listSize; i++)
     {
         string dato = string(flist->at(i)->c_str());
@@ -110,16 +110,16 @@ void serializar_lista_ficheros(std::vector<unsigned char> &packet, std::vector<s
     }
 }
 
-void deserializar_lista_ficheros(std::vector<unsigned char> &packet, std::vector<string *> *flist)
+void deserializar_lista_ficheros(std::vector<unsigned char>&packet, std::vector<string *>* flist)
 {
     int listSize = unpack<int>(packet);
-    
+
     for (int i = 0; i < listSize; i++)
     {
         int strSize = unpack<int>(packet);
         char* d = new char[strSize];
         unpackv<char>(packet, d, strSize);
-        string *dato = new string(d);
+        string* dato = new string(d);
         delete[] d;
 
         flist->push_back(dato);

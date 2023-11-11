@@ -5,7 +5,6 @@
 #include <signal.h>
 #include <thread>
 
-#include "../../include/utils/serializacion.h"
 #include "../../include/utils/peticiones.h"
 #include "../../include/multmatrix/multmatrix_imp.h"
 
@@ -32,8 +31,8 @@ void sigstop(int signal)
 int main(int argc, char **argv)
 {
     // Variables del servidor
-    std::string ipaddr = "127.0.0.1", ipbroker = "127.0.0.1";
-    int ipport = 10001, ipbrokerport = 10000;
+    std::string ipaddr = "127.0.0.1";
+    int ipport = 10001;
 
     // Inicializacion del servidor
     int socket = initServer(ipport);
@@ -42,10 +41,6 @@ int main(int argc, char **argv)
     // Manejo de señales para cerrar la conexion
     signal(SIGINT, sigstop);
 
-    // Registrar el servidor en el broker
-    std::vector<unsigned char> packet_in, packet_out;
-    connection_t broker = initClient(ipbroker, ipbrokerport);
-
     // Crear la estructura de datos del servidor
     t_server *server = new t_server;
     server->ipaddr_len = (int) ipaddr.length() + 1;
@@ -53,21 +48,8 @@ int main(int argc, char **argv)
     server->port = ipport;
     server->type = SV_MULTMATRIX;
 
-    // Enviar datos del servidor al broker
-    preparar_y_enviar_registro_servidor_broker(broker.serverId, packet_out, *server);
-
-    // Recibir respuesta del broker
-    recvMSG(broker.serverId, packet_in);
-    if (unpack<e_resultado_broker>(packet_in) != BK_OK)
-    {
-        std::cout << "MM_Server: No se ha podido registrar el servidor en el broker. Cerrando..." << std::endl;
-        return 1;
-    }
-
-    // Cerrar la conexion con el broker
-    std::cout << "MM_Server: Servidor registrado en el broker. Continuando..." << std::endl;
-    std::cout << "MM_Server: Terminando registro en el broker. Cerrando conexion..." << std::endl;
-    closeConnection(broker.serverId);
+    // Registrar en broker
+    if (!registrar_servidor_en_broker(*server)) return 1;
 
     // Bucle principal
     while (RUNNING)
@@ -82,36 +64,11 @@ int main(int argc, char **argv)
     }
 
     // Eliminar el servidor del broker
-    broker = initClient(ipbroker, ipbrokerport);
-
-    // Enviar datos del servidor al broker
-    preparar_y_enviar_delete_servidor_broker(broker.serverId, packet_out, *server);
-
-    // Recibir respuesta del broker
-    recvMSG(broker.serverId, packet_in);
-    switch (unpack<e_resultado_broker>(packet_in))
-    {
-        case BK_OK:
-            std::cout << "MM_Server: Servidor eliminado del broker. Cerrando..." << std::endl;
-            break;
-
-        case BK_NOSERVERFOUND:
-            std::cout << "MM_Server: Servidor no registrado en el broker. No se puede eliminar. Cerrando..." << std::endl;
-            break;
-
-        case BK_ERROR:
-            std::cout << "MM_Server: Error al eliminar el servidor del broker. Cerrando..." << std::endl;
-            break;
-
-        default:
-            std::cout << "MM_Server: Enviado tipo de servidor incorrecto. Cerrando..." << std::endl;
-            break;
-    }
+    eliminar_servidor_en_broker(*server);
 
     // Liberar memoria
     delete server;
 
     // Cierre de la conexion
-    closeConnection(broker.serverId);
     close(socket);
 }

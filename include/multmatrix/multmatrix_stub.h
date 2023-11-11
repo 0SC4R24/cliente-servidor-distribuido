@@ -24,67 +24,24 @@ private:
     // Definir conexion con la implementacion
     connection_t server = {};
 
-    // Definir ip y port de la conexion
-    std::string ipaddr = "127.0.0.1";
-    int ipport = 10000;
-
 public:
     MultmatrixStub()
     {
-        // Definir conexion con el broker
-        this->server = initClient(this->ipaddr, this->ipport);
-
         // Definir paquetes
         std::vector<unsigned char> packet_out, packet_in;
 
-        // Iniciar conexion con el broker
-        prepara_y_envia_cliente_broker(this->server.serverId, packet_out, CL_MULTMATRIX);
-
-        // Recibir respuesta del broker y cerrar la conexion
-        recvMSG(this->server.serverId, packet_in);
-
-        // Procesar la respuesta del broker
-        int exit_code = 0;
-        switch (unpack<e_resultado_broker>(packet_in))
-        {
-            case BK_OK:
-                std::cout << "MultmatrixStub: Conectado con el broker. Continuando..." << std::endl;
-                break;
-
-            case BK_WAIT:
-                // Esperar a que haya un servidor disponible
-                std::cout << "MultmatrixStub: No hay servidores disponibles. Esperando..." << std::endl;
-                recvMSG(this->server.serverId, packet_in);
-                std::cout << "MultmatrixStub: Servidor disponible. Continuando..." << std::endl;
-                break;
-
-            case BK_NOSERVERAVAILABLE:
-                std::cout << "MultmatrixStub: No hay servidores disponibles. Terminando..." << std::endl;
-                exit_code = 2;
-                break;
-
-            default:
-                std::cout << "MultmatrixStub: La operacion enviada no se reconoce. Terminando..." << std::endl;
-                exit_code = 3;
-                break;
-        }
-
-        // Cerrar la conexion con el broker
-        closeConnection(this->server.serverId);
-
-        // Salir si no se ha podido conectar con el broker
-        if (exit_code) exit(exit_code);
-
-        // Procesar los datos del servidor
-        t_server *servidor_solicitado = deserializar_server(packet_in);
+        // Pedir servidor a broker
+        t_server* servidor_solicitado = pedir_servidor_a_broker(CL_MULTMATRIX);
 
         // Init de la conexion con la implementacion
         this->server = initClient(servidor_solicitado->ipaddr, servidor_solicitado->port);
 
         // Mostar mensaje de conexion y datos del servidor
+        std::cout << "========================================" << std::endl;
         std::cout << "MultmatrixStub: Conectado con el servidor" << std::endl;
-        std::cout << "MultmatrixStub: IP: " << servidor_solicitado->ipaddr << std::endl;
-        std::cout << "MultmatrixStub: Port: " << servidor_solicitado->port << std::endl;
+        std::cout << "   IP: " << servidor_solicitado->ipaddr << std::endl;
+        std::cout << "   Port: " << servidor_solicitado->port << std::endl;
+        std::cout << "========================================" << std::endl;
 
         // Envio de operacion y recepcion de packet_in
         pack(packet_out, MM_CONSTRUCTOR);
@@ -141,11 +98,11 @@ public:
         closeConnection(this->server.serverId);
     }
 
-    matrix_t *createRandMatrix(int rows, int cols) const
+    matrix_t* createRandMatrix(int rows, int cols) const
     {
         // Definir paquetes
         std::vector<unsigned char> packet_out, packet_in;
-        matrix_t *matrix = new matrix_t;
+        matrix_t* matrix = new matrix_t;
 
         // Envio de operacion y recepcion de packet_in
         pack(packet_out, MM_CREATERANDMATRIX);
@@ -176,11 +133,11 @@ public:
         return matrix;
     }
 
-    matrix_t *createIdentity(int rows, int cols) const
+    matrix_t* createIdentity(int rows, int cols) const
     {
         // Definir paquetes
         std::vector<unsigned char> packet_out, packet_in;
-        matrix_t *matrix = new matrix_t;
+        matrix_t* matrix = new matrix_t;
 
         // Envio de operacion y recepcion de packet_in
         pack(packet_out, MM_CREATEIDENTITY);
@@ -211,11 +168,11 @@ public:
         return matrix;
     }
 
-    matrix_t *multMatrices(matrix_t *matrix_1, matrix_t *matrix_2) const
+    matrix_t* multMatrices(matrix_t* matrix_1, matrix_t* matrix_2) const
     {
         // Definir paquetes
         std::vector<unsigned char> packet_out, packet_in;
-        matrix_t *matrix = new matrix_t;
+        matrix_t* matrix = new matrix_t;
 
         // Envio de operacion y recepcion de packet_in
         pack(packet_out, MM_MULTMATRIX);
@@ -246,14 +203,14 @@ public:
         return matrix;
     }
 
-    void writeMatrix(matrix_t *matrix, std::string file)
+    void writeMatrix(matrix_t* matrix, std::string file)
     {
         // Definir paquetes
         std::vector<unsigned char> packet_out, packet_in;
 
         // Envio de operacion y recepcion de packet_in
         pack(packet_out, MM_WRITEMATRIX);
-        serializar_char_array(packet_out, file.c_str(), (int) file.length() + 1);
+        serializar_char_array(packet_out, file.c_str(), (int)file.length() + 1);
         serializar_matrix(packet_out, matrix);
         sendMSG(this->server.serverId, packet_out);
         recvMSG(this->server.serverId, packet_in);
@@ -279,15 +236,15 @@ public:
         }
     }
 
-    matrix_t *readMatrix(std::string file)
+    matrix_t* readMatrix(std::string file)
     {
         // Definir paquetes
         std::vector<unsigned char> packet_out, packet_in;
-        matrix_t *matrix = new matrix_t;
+        matrix_t* matrix = new matrix_t;
 
         // Envio de operacion y recepcion de packet_in
         pack(packet_out, MM_READMATRIX);
-        serializar_char_array(packet_out, file.c_str(), (int) file.length() + 1);
+        serializar_char_array(packet_out, file.c_str(), (int)file.length() + 1);
         sendMSG(this->server.serverId, packet_out);
         recvMSG(this->server.serverId, packet_in);
 
@@ -317,7 +274,7 @@ public:
         return matrix;
     }
 
-    static void print_matrix(matrix_t *m)
+    static void print_matrix(matrix_t* m)
     {
         for (int i = 0; i < m->rows; i++)
         {

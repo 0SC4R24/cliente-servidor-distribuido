@@ -22,14 +22,14 @@ void sigstop(int signal)
     std::cout << std::endl << "BROKER: Terminando instancia del broker. Adios..." << std::endl;
 }
 
-void notificar_cliente(int client_id, std::list<t_server *> *servidores)
+void notificar_cliente(int client_id, std::list<t_server *>* servidores)
 {
     // Esperar hasta que haya servidores disponibles
     while (servidores->empty()) usleep(2000);
 
     // Variables
     std::vector<unsigned char> packet_out;
-    t_server *server_info = servidores->front();
+    t_server* server_info = servidores->front();
     servidores->pop_front();
 
     // Enviar informacion del servidor
@@ -39,17 +39,18 @@ void notificar_cliente(int client_id, std::list<t_server *> *servidores)
     servidores->push_back(server_info);
 
     // Mostrar informacion del cliente y del servidor
-    std::cout << "BROKER: Cliente conectado" << std::endl;
-    std::cout << "BROKER: Servidor asignado:" << std::endl;
-    std::cout << "BROKER: IP: " << server_info->ipaddr << std::endl;
-    std::cout << "BROKER: Puerto: " << server_info->port << std::endl;
-    std::cout << "BROKER: Tipo: " << "__THREAD__" << std::endl;
+    std::cout << "========================================" << std::endl;
+    std::cout << "BROKER: Cliente conectado al servidor" << std::endl;
+    std::cout << "  IP: " << server_info->ipaddr << std::endl;
+    std::cout << "  Puerto: " << server_info->port << std::endl;
+    std::cout << "  Tipo: __THREAD__" << std::endl;
+    std::cout << "========================================" << std::endl << std::endl;
 
     // Enviar informacion del servidor
     sendMSG(client_id, packet_out);
 }
 
-int main(int argc, char **argv)
+int main(int argc, char** argv)
 {
     // Manejo de señales para cerrar la conexion
     signal(SIGINT, sigstop);
@@ -105,7 +106,7 @@ int main(int argc, char **argv)
                     else
                     {
                         // Seleccionar el primer servidor disponible
-                        t_server *server_info = servidores[tipo_servidor_solicitado].front();
+                        t_server* server_info = servidores[tipo_servidor_solicitado].front();
                         servidores[tipo_servidor_solicitado].pop_front();
 
                         // Enviar informacion del servidor
@@ -116,19 +117,20 @@ int main(int argc, char **argv)
                         servidores[tipo_servidor_solicitado].push_back(server_info);
 
                         // Mostrar informacion del cliente y del servidor
-                        std::cout << "BROKER: Cliente conectado" << std::endl;
-                        std::cout << "BROKER: Servidor asignado:" << std::endl;
-                        std::cout << "BROKER: IP: " << server_info->ipaddr << std::endl;
-                        std::cout << "BROKER: Puerto: " << server_info->port << std::endl;
-                        std::cout << "BROKER: Tipo: " << tipo_servidor_solicitado << std::endl;
+                        std::cout << "========================================" << std::endl;
+                        std::cout << "BROKER: Cliente conectado al servidor" << std::endl;
+                        std::cout << "  IP: " << server_info->ipaddr << std::endl;
+                        std::cout << "  Puerto: " << server_info->port << std::endl;
+                        std::cout << "  Tipo: " << tipo_servidor_solicitado << std::endl;
+                        std::cout << "========================================" << std::endl << std::endl;
                     }
                 }
-                    break;
+                break;
 
                 case BK_SERVIDOR:
                 {
                     // Desempaquetar los datos del servidor
-                    t_server *datos_servidor_solicitado = deserializar_server_con_id(packet_in, client_id);
+                    t_server* datos_servidor_solicitado = deserializar_server_con_id(packet_in, client_id);
                     e_resultado_broker resultado = BK_ERROR;
 
                     // Guardar informacion del servidor
@@ -161,32 +163,75 @@ int main(int argc, char **argv)
                     // Mostrar informacion del servidor
                     if (resultado == BK_OK)
                     {
-                        std::cout << "BROKER: Servidor conectado" << std::endl;
-                        std::cout << "BROKER: Servidor guardado:" << std::endl;
-                        std::cout << "BROKER: IP: " << datos_servidor_solicitado->ipaddr << std::endl;
-                        std::cout << "BROKER: Puerto: " << datos_servidor_solicitado->port << std::endl;
-                        std::cout << "BROKER: Tipo: " << datos_servidor_solicitado->type << std::endl;
+                        std::cout << "========================================" << std::endl;
+                        std::cout << "BROKER: Servidor conectado y registrado" << std::endl;
+                        std::cout << "  IP: " << datos_servidor_solicitado->ipaddr << std::endl;
+                        std::cout << "  Puerto: " << datos_servidor_solicitado->port << std::endl;
+                        std::cout << "  Tipo: " << datos_servidor_solicitado->type << std::endl;
+                        std::cout << "========================================" << std::endl << std::endl;
                     }
-                    else std::cout << "BROKER: Servidor no guardado. Ignorando..." << std::endl;
+                    else std::cout << "BROKER: Servidor no registrado. Ignorando..." << std::endl;
                 }
-                    break;
+                break;
 
                 case BK_DELSERVIDOR:
                 {
                     // Desempaquetar los datos del servidor
-                    t_server *datos_servidor_eliminar = deserializar_server_con_id(packet_in, client_id);
+                    const t_server* datos_servidor_eliminar = deserializar_server_con_id(packet_in, client_id);
                     e_resultado_broker resultado = BK_ERROR;
 
                     // Eliminar el servidor
                     switch (datos_servidor_eliminar->type)
                     {
                         case SV_BOTH:
-                            datos_servidor_eliminar->type = SV_MULTMATRIX; // Da igual en que lista este, se eliminara de ambas, ya que es la misma referencia
+                        {
+                            t_server* servidor_eliminar = nullptr;
+
+                            // Eliminar el servidor de multmatrix
+                            for (auto&server: servidores[SV_MULTMATRIX])
+                            {
+                                if (!strcmp(datos_servidor_eliminar->ipaddr, server->ipaddr) && datos_servidor_eliminar->port == server->port)
+                                {
+                                    // Eliminar el servidor
+                                    servidores[SV_MULTMATRIX].remove(server);
+                                    servidor_eliminar = server;
+
+                                    // Guardar estado de la peticion
+                                    resultado = BK_OK;
+                                    break;
+                                }
+                            }
+
+                            // Eliminar el servidor de filemanager
+                            if (servidor_eliminar != nullptr) servidores[SV_FILEMANAGER].remove(servidor_eliminar);
+                            else
+                                for (auto&server: servidores[SV_FILEMANAGER])
+                                {
+                                    if (!strcmp(datos_servidor_eliminar->ipaddr, server->ipaddr) && datos_servidor_eliminar->port == server->port)
+                                    {
+                                        // Eliminar el servidor
+                                        servidores[SV_FILEMANAGER].remove(server);
+                                        servidor_eliminar = server;
+
+                                        // Guardar estado de la peticion
+                                        resultado = BK_OK;
+                                        break;
+                                    }
+                                }
+
+                            // Liberar memoria del servidor eliminado
+                            if (servidor_eliminar != nullptr)
+                            {
+                                delete[] servidor_eliminar->ipaddr;
+                                delete servidor_eliminar;
+                            }
+                        }
+                        break;
 
                         case SV_MULTMATRIX:
                         case SV_FILEMANAGER:
                         {
-                            for (auto &server: servidores[datos_servidor_eliminar->type])
+                            for (auto&server: servidores[datos_servidor_eliminar->type])
                             {
                                 if (!strcmp(datos_servidor_eliminar->ipaddr, server->ipaddr) && datos_servidor_eliminar->port == server->port)
                                 {
@@ -201,7 +246,7 @@ int main(int argc, char **argv)
                                 }
                             }
                         }
-                            break;
+                        break;
 
                         default:
                             std::cout << "BROKER: Tipo de servidor desconocido. Ignorando..." << std::endl;
@@ -214,18 +259,20 @@ int main(int argc, char **argv)
                     // Comprobar si se ha eliminado el servidor y mostrar los datos
                     if (resultado == BK_OK)
                     {
-                        std::cout << "BROKER: Servidor eliminado:" << std::endl;
-                        std::cout << "BROKER: IP: " << datos_servidor_eliminar->ipaddr << std::endl;
-                        std::cout << "BROKER: Puerto: " << datos_servidor_eliminar->port << std::endl;
-                        std::cout << "BROKER: Tipo: " << datos_servidor_eliminar->type << std::endl;
+                        std::cout << "========================================" << std::endl;
+                        std::cout << "BROKER: Servidor conectado y eliminado" << std::endl;
+                        std::cout << "  IP: " << datos_servidor_eliminar->ipaddr << std::endl;
+                        std::cout << "  Puerto: " << datos_servidor_eliminar->port << std::endl;
+                        std::cout << "  Tipo: " << datos_servidor_eliminar->type << std::endl;
+                        std::cout << "========================================" << std::endl << std::endl;
                     }
-                    else std::cout << "BROKER: Servidor no encontrado" << std::endl;
+                    else std::cout << "BROKER: Servidor no encontrado. Ignorando..." << std::endl;
 
                     // Liberar memoria
                     delete[] datos_servidor_eliminar->ipaddr;
                     delete datos_servidor_eliminar;
                 }
-                    break;
+                break;
 
                 default:
                     std::cout << "BROKER: Tipos de broker desconocido. Ignorando..." << std::endl;
@@ -239,9 +286,9 @@ int main(int argc, char **argv)
     }
 
     // Liberar memoria
-    for (auto &server: servidores)
+    for (auto&server: servidores)
     {
-        for (auto &server_info: server.second) delete[] server_info->ipaddr;
+        for (auto&server_info: server.second) delete[] server_info->ipaddr;
         server.second.clear();
     }
     servidores.clear();
