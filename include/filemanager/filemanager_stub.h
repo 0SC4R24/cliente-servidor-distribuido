@@ -28,7 +28,6 @@ void sendStringOp(int serverId, std::string dato, e_operacion_filemanager op)
     recvMSG(serverId, res);
 
     int ok = unpack<int>(res);
-
     if (!ok)
     {
         std::cout << "ERROR " << __FILE__ << ":" << __LINE__ << "\n";
@@ -148,7 +147,6 @@ public:
         recvMSG(serverConnection.serverId, res);
 
         int ok = unpack<int>(res);
-
         if (!ok)
         {
             std::cout << "ERROR " << __FILE__ << ":" << __LINE__ << "\n";

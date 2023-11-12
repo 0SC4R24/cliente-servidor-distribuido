@@ -46,6 +46,7 @@ project(fm_client LANGUAGES CXX)
 add_executable(
         fm_client
         source/filemanager/main_fm.cpp
+        source/filemanager/filemanager.cpp
         source/utils/socket.cpp
         include/filemanager/filemanager_stub.h
 )

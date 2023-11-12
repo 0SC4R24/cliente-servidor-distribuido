@@ -25,13 +25,13 @@ class FileManager_imp
 {
 private:
     int clientID;
-    FileManager *fm = nullptr;
+    FileManager* fm = nullptr;
+
 public:
     bool conexionCerrada = false;
 
     FileManager_imp()
     {
-
     }
 
     void recOp(int clientID)
@@ -51,7 +51,7 @@ public:
 
                 int size = unpack<int>(packetIn);
 
-                char *d = new char[size];
+                char* d = new char[size];
                 unpackv<char>(packetIn, d, size);
                 dato = string(d);
                 delete[] d;
@@ -60,41 +60,46 @@ public:
 
                 int ok = 1;
                 pack(packetOut, ok);
-            } break;
+            }
+            break;
             case FL_DESTRUCTOR:
             {
                 delete fm;
-				conexionCerrada = true;
+                conexionCerrada = true;
                 pack<int>(packetOut, 1);
-            } break;
+            }
+            break;
             case FL_LISTFILES:
             {
-                vector<string *> *flist;
+                vector<string *>* flist;
                 flist = fm->listFiles();
                 pack(packetOut, 1);
                 serializar_lista_ficheros(packetOut, flist);
-            } break;
+            }
+            break;
             case FL_FREELISTEDFILES:
             {
-                vector<string *> *flist = new vector<string *>();
+                vector<string *>* flist = new vector<string *>();
                 deserializar_lista_ficheros(packetIn, flist);
                 fm->freeListedFiles(flist);
                 pack(packetOut, 1);
-            } break;
+            }
+            break;
             case FL_READFILE:
             {
                 int fileSize = unpack<int>(packetIn);
-                char *fileName = new char[fileSize];
+                char* fileName = new char[fileSize];
                 unpackv<char>(packetIn, fileName, fileSize);
 
                 unsigned long int dataLength;
-                char *data;
+                char* data;
                 fm->readFile(fileName, data, dataLength);
 
-                pack(packetOut, 1); 
-                pack(packetOut, dataLength);
+                pack(packetOut, 1);
+                pack<unsigned long int>(packetOut, dataLength);
                 packv(packetOut, data, dataLength);
-            } break;
+            }
+            break;
             case FL_WRITEFILE:
             {
                 int fileNameSize = unpack<int>(packetIn);
@@ -108,11 +113,13 @@ public:
                 fm->writeFile(fileName, data, dataLength);
 
                 pack(packetOut, 1);
-            } break;
+            }
+            break;
             default:
             {
                 std::cout << "ERROR: operacion no valida\n";
-            } break;
+            }
+            break;
         };
 
         sendMSG(clientID, packetOut);

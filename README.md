@@ -79,9 +79,11 @@ make
 
 # Ejecución del servidor
 ./mm_server
+./fm_server
 
 # Ejecución del cliente
 ./mm_client
+./fm_client
 ```
 
 # Autores

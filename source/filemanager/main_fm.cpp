@@ -13,7 +13,9 @@
 #include <signal.h>
 
 #include "../../include/utils/socket.h"
+#include "../../include/filemanager/filemanager.h"
 #include "../../include/filemanager/filemanager_stub.h"
+
 
 bool RUNNING = true;
 
@@ -142,12 +144,11 @@ void download(string path, string fileName)
 
     fm->readFile(file, data, dataLength);
 
-    string localPath = "./" + fileName;
-    FILE* f = fopen(localPath.c_str(), "w");
-    fwrite(data, dataLength, 1, f);
-    fclose(f);
+    FileManager* fm2 = new FileManager(".");
+    fm2->writeFile(file, data, dataLength);
 
     delete fm;
+    delete fm2;
     delete[] data;
 }
 
@@ -237,21 +238,17 @@ void handleCat(vector<string>&args)
             return;
         }
 
-        string file = string(fileName);
-        file = "./" + file;
-        FILE* f = fopen(file.c_str(), "r");
-
+        FileManager* fm = new FileManager(".");
+        char* file = (char *)args[2].c_str();
         char* data;
         unsigned long int dataLength = 0;
-        fseek(f, 0L, SEEK_END);
-        dataLength = ftell(f);
-        fseek(f, 0L, SEEK_SET);
-        data = new char[dataLength];
 
-        fread(data, dataLength, 1, f);
-        string content = string(data);
-        cout << content << endl;
-        fclose(f);
+        fm->readFile(file, data, dataLength);
+        cout << string(data) << endl;
+
+        // Liberar memoria
+        delete fm;
+        delete[] data;
     }
     else if (args[1] == "-r")
     {
@@ -261,8 +258,7 @@ void handleCat(vector<string>&args)
         unsigned long int dataLength = 0;
 
         fm->readFile(file, data, dataLength);
-        string content = string(data);
-        cout << content << endl;
+        cout << string(data) << endl;
 
         delete fm;
         delete[] data;
