@@ -1,3 +1,7 @@
+//
+// Created by Oscar on 7/11/2023
+//
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <cstdlib>
@@ -6,16 +10,16 @@
 #include <map>
 #include <functional>
 #include <vector>
+#include <signal.h>
+
 #include "../../include/utils/socket.h"
-#include "../../include/utils/tipos.h"
 #include "../../include/filemanager/filemanager_stub.h"
 
-//
-// Created by Oscar on 7/11/2023
-//
+bool RUNNING = true;
 
 // Command handlers
-void handleHelp() {
+void handleHelp()
+{
     cout << "Available commands:" << endl;
     cout << "  help     - Display available commands" << endl; // Done
     cout << "  ls       - Display all files inside file manager. Usage: ls -[l | r]" << endl; // Done
@@ -27,30 +31,41 @@ void handleHelp() {
     cout << "  exit     - Exit the terminal" << endl; // Done
 }
 
-void handleGreet(vector<string>& args) {
-    if (args.size() != 2) {
+void handleGreet(vector<string>&args)
+{
+    if (args.size() != 2)
+    {
         cout << "Usage: greet <name>" << endl;
-    } else {
+    }
+    else
+    {
         cout << "Hello, " << args[1] << "!" << endl;
     }
 }
 
-void handleExit() {
+void handleExit()
+{
     cout << "Exiting the terminal..." << endl;
-    exit(0);
+    RUNNING = false;
 }
 
-void handlePwd(vector<string>& args) {
+void handlePwd(vector<string>&args)
+{
     cout << "/home/user/" << args[0] << endl;
 }
 
-void handleLs(vector<string>& args) {
-    if (args.size() != 2) {
+void handleLs(vector<string>&args)
+{
+    if (args.size() != 2)
+    {
         cout << "Usage: ls -[l | r]" << endl;
-    } else {
-        if (args[1] == "-r") {
-            FileManager_stub *fm = new FileManager_stub(args[0]);
-            vector<string *> *vfiles = fm->listFiles();
+    }
+    else
+    {
+        if (args[1] == "-r")
+        {
+            FileManager_stub* fm = new FileManager_stub(args[0]);
+            vector<string *>* vfiles = fm->listFiles();
 
             cout << "Files list in the remote directory " << args[0] << ":" << endl;
             for (unsigned int i = 0; i < vfiles->size(); i++)
@@ -63,59 +78,72 @@ void handleLs(vector<string>& args) {
             delete fm;
 
             cout << endl;
-        } else if (args[1] == "-l") {
-            DIR *dir;
-            struct dirent *ent;
+        }
+        else if (args[1] == "-l")
+        {
+            DIR* dir;
+            struct dirent* ent;
             string path = ".";
 
-            if ((dir = opendir(path.c_str())) != nullptr) {
+            if ((dir = opendir(path.c_str())) != nullptr)
+            {
                 /* print all the files and directories within directory */
                 cout << "Files list in the local directory " << path << ":" << endl;
-                while ((ent = readdir(dir)) != nullptr) {
-                    if (ent->d_type == DT_REG) {
-                        string *f = new string(ent->d_name);
+                while ((ent = readdir(dir)) != nullptr)
+                {
+                    if (ent->d_type == DT_REG)
+                    {
+                        string* f = new string(ent->d_name);
                         cout << "  File: " << f->c_str() << endl;
                     }
                 }
                 closedir(dir);
-            } else {
+            }
+            else
+            {
                 /* could not open directory */
                 cout << "ERROR: No existe el fichero o directorio" << endl;
             }
 
             cout << endl;
-        } else {
+        }
+        else
+        {
             cout << "Argument " << args[1] << " not found. Usage: ls -[l | r]" << endl;
         }
     }
 }
 
-void download(string path, string fileName) {
-    FileManager_stub *fm = new FileManager_stub(path);
-    vector<string *> *vfiles = fm->listFiles();
+void download(string path, string fileName)
+{
+    FileManager_stub* fm = new FileManager_stub(path);
+    vector<string *>* vfiles = fm->listFiles();
     bool exists = false;
 
-    for (unsigned int i = 0; i < vfiles->size(); i++) {
-        if (vfiles->at(i)->c_str() == fileName) {
+    for (unsigned int i = 0; i < vfiles->size(); i++)
+    {
+        if (vfiles->at(i)->c_str() == fileName)
+        {
             exists = true;
             break;
         }
     }
     fm->freeListedFiles(vfiles);
 
-    if (!exists) {
+    if (!exists)
+    {
         cout << "File doesn't exist" << endl;
         return;
     }
 
-    char* file = (char*) fileName.c_str();
+    char* file = (char *)fileName.c_str();
     char* data;
     unsigned long int dataLength = 0;
-    
+
     fm->readFile(file, data, dataLength);
 
     string localPath = "./" + fileName;
-    FILE *f = fopen(localPath.c_str(), "w");
+    FILE* f = fopen(localPath.c_str(), "w");
     fwrite(data, dataLength, 1, f);
     fclose(f);
 
@@ -123,43 +151,56 @@ void download(string path, string fileName) {
     delete[] data;
 }
 
-void handleDownload(vector<string>& args) {
-    if (args.size() != 2) {
+void handleDownload(vector<string>&args)
+{
+    if (args.size() != 2)
+    {
         cout << "Usage: download <fileName>" << endl;
-    } else {
+    }
+    else
+    {
         download(args[0], args[1]);
     }
 }
 
-bool checkIfFileExists(char* fileName, string path) {
+bool checkIfFileExists(char* fileName, string path)
+{
     string file = string(fileName);
     file = path + "/" + file;
     FILE* f = fopen(file.c_str(), "r");
     bool exists = false;
 
-    if (f != nullptr) {
+    if (f != nullptr)
+    {
         exists = true;
         fclose(f);
-    } else {
+    }
+    else
+    {
         exists = false;
     }
 
     return exists;
 }
 
-void handleUpload(vector<string>& args) {
-    if (args.size() != 2) {
+void handleUpload(vector<string>&args)
+{
+    if (args.size() != 2)
+    {
         cout << "Usage: upload <fileName>" << endl;
-    } else {
-        char* fileName = (char*) args[1].c_str();
-        if (!checkIfFileExists(fileName, ".")) {
+    }
+    else
+    {
+        char* fileName = (char *)args[1].c_str();
+        if (!checkIfFileExists(fileName, "."))
+        {
             cout << "File doesn't exist" << endl;
             return;
         }
 
         string file = string(fileName);
         file = "./" + file;
-        FILE *f = fopen(file.c_str(), "r");
+        FILE* f = fopen(file.c_str(), "r");
 
         char* data;
         unsigned long int dataLength = 0;
@@ -170,7 +211,7 @@ void handleUpload(vector<string>& args) {
         data = new char[dataLength];
         fread(data, dataLength, 1, f);
 
-        FileManager_stub *fm = new FileManager_stub(args[0]);
+        FileManager_stub* fm = new FileManager_stub(args[0]);
         fm->writeFile(fileName, data, dataLength);
 
         delete fm;
@@ -179,22 +220,26 @@ void handleUpload(vector<string>& args) {
     }
 }
 
-void handleCat(vector<string>& args) {
-    if (args.size() != 3) {
+void handleCat(vector<string>&args)
+{
+    if (args.size() != 3)
+    {
         cout << "Usage: cat -[l | r] <fileName>" << endl;
         return;
     }
-    
-    if (args[1] == "-l") {
-        char* fileName = (char*) args[2].c_str();
-        if (!checkIfFileExists(fileName, ".")) {
+
+    if (args[1] == "-l")
+    {
+        char* fileName = (char *)args[2].c_str();
+        if (!checkIfFileExists(fileName, "."))
+        {
             cout << "File doesn't exist" << endl;
             return;
         }
 
         string file = string(fileName);
         file = "./" + file;
-        FILE *f = fopen(file.c_str(), "r");
+        FILE* f = fopen(file.c_str(), "r");
 
         char* data;
         unsigned long int dataLength = 0;
@@ -207,44 +252,63 @@ void handleCat(vector<string>& args) {
         string content = string(data);
         cout << content << endl;
         fclose(f);
-    } else if (args[1] == "-r") {
-        FileManager_stub *fm = new FileManager_stub(args[0]);
-        char* file = (char*) args[2].c_str();
+    }
+    else if (args[1] == "-r")
+    {
+        FileManager_stub* fm = new FileManager_stub(args[0]);
+        char* file = (char *)args[2].c_str();
         char* data;
         unsigned long int dataLength = 0;
-        
+
         fm->readFile(file, data, dataLength);
         string content = string(data);
         cout << content << endl;
 
         delete fm;
         delete[] data;
-    } else {
+    }
+    else
+    {
         cout << "Argument " << args[1] << " not found. Usage: cat -[l | r] <fileName>" << endl;
     }
 }
 
-int main(int argc, char **argv)
+void sigstop(int signal)
 {
+    // Mostrar indicaciones para salir
+    std::cout << std::endl << "Usa el comando 'exit' para salir de la terminal." << std::endl;
+}
+
+int main(int argc, char** argv)
+{
+    signal(SIGINT, sigstop);
+
     map<string, function<void(vector<string>&)>> commandHandlers = {
-        {"help", [] (vector<string>&) { handleHelp(); }},
-        {"greet", [] (vector<string>& args) { handleGreet(args); }},
-        {"exit", [] (vector<string>&) { handleExit(); }},
-        {"ls", [] (vector<string>& args) { handleLs(args); }},
-        {"pwd", [] (vector<string>& args) { handlePwd(args); }},
-        {"download", [] (vector<string>& args) { handleDownload(args); }},
-        {"upload", [] (vector<string>& args) { handleUpload(args); }},
-        {"cat", [] (vector<string>& args) { handleCat(args); }}
+        {"help", [](vector<string>&) { handleHelp(); }},
+        {"greet", [](vector<string>&args) { handleGreet(args); }},
+        {"exit", [](vector<string>&) { handleExit(); }},
+        {"ls", [](vector<string>&args) { handleLs(args); }},
+        {"pwd", [](vector<string>&args) { handlePwd(args); }},
+        {"download", [](vector<string>&args) { handleDownload(args); }},
+        {"upload", [](vector<string>&args) { handleUpload(args); }},
+        {"cat", [](vector<string>&args) { handleCat(args); }}
     };
 
     string path = "dirprueba";
     string input;
-    while (true) {
+
+    // Mostrar informacion de la terminal
+    cout << "Terminal de File Manager" << endl;
+    cout << "Escribe 'help' para ver los comandos disponibles" << endl;
+
+    while (RUNNING)
+    {
         cout << "terminal:$ ";
 
         getline(cin, input);
 
-        if (input.empty()) {
+        if (input.empty())
+        {
             continue;
         }
 
@@ -255,14 +319,18 @@ int main(int argc, char **argv)
         vector<string> args;
         string arg;
         args.push_back(path);
-        while (iss >> arg) {
+        while (iss >> arg)
+        {
             args.push_back(arg);
         }
 
         auto it = commandHandlers.find(command);
-        if (it != commandHandlers.end()) {
+        if (it != commandHandlers.end())
+        {
             it->second(args);
-        } else {
+        }
+        else
+        {
             cout << "Unknown command. Type 'help' for a list of commands." << endl;
         }
     }
