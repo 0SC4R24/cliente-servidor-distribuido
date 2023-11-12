@@ -224,14 +224,6 @@ void handleCat(vector<string>& args) {
     }
 }
 
-void handleCd(vector<string>& args) {
-    if (args.size() != 2) {
-        cout << "Usage: cd <path>" << endl;
-    } else {
-        args[0] = args[1];
-    }
-}
-
 int main(int argc, char **argv)
 {
     map<string, function<void(vector<string>&)>> commandHandlers = {
