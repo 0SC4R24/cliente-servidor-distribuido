@@ -123,8 +123,12 @@ public:
                     serializar_matrix(packet_out, m3);
 
                     // Liberar memoria
+                    // Liberar .data
+                    delete m1->data;
                     delete m1;
+                    delete m2->data;
                     delete m2;
+                    delete m3->data;
                     delete m3;
 
                     // Mostar mensaje
