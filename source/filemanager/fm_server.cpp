@@ -30,8 +30,14 @@ void sigstop(int signal)
 
 int main(int argc, char** argv)
 {
+    if (argc < 2)
+    {
+        std::cout << "FM_Server: Falta definir la ip." << std::endl;
+        return 1;
+    }
+
     // Variables del servidor
-    std::string ipaddr = "127.0.0.1";
+    std::string ipaddr = argv[1];
     int ipport = 10002;
 
     // Inicializacion del servidor
@@ -44,7 +50,7 @@ int main(int argc, char** argv)
     // Crear la estructura de datos del servidor
     t_server* server = new t_server;
     server->ipaddr_len = (int)ipaddr.length() + 1;
-    server->ipaddr = (char *)ipaddr.c_str();
+    server->ipaddr = (char*)ipaddr.c_str();
     server->port = ipport;
     server->type = SV_FILEMANAGER;
 

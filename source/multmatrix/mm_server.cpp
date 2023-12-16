@@ -12,7 +12,7 @@ bool RUNNING = true;
 
 void atiende_cliente(int cliente_id)
 {
-    MultmatrixImp *mm_imp = new MultmatrixImp();
+    MultmatrixImp* mm_imp = new MultmatrixImp();
 
     while (!mm_imp->conexion_cerrada) mm_imp->recibe_operacion(cliente_id);
 
@@ -28,10 +28,16 @@ void sigstop(int signal)
     std::cout << std::endl << "MM_Server: Terminando instancia del servidor. Adios..." << std::endl;
 }
 
-int main(int argc, char **argv)
+int main(int argc, char** argv)
 {
+    if (argc < 2)
+    {
+        std::cout << "FM_Server: Falta definir la ip." << std::endl;
+        return 1;
+    }
+
     // Variables del servidor
-    std::string ipaddr = "127.0.0.1";
+    std::string ipaddr = argv[1];
     int ipport = 10001;
 
     // Inicializacion del servidor
@@ -42,9 +48,9 @@ int main(int argc, char **argv)
     signal(SIGINT, sigstop);
 
     // Crear la estructura de datos del servidor
-    t_server *server = new t_server;
-    server->ipaddr_len = (int) ipaddr.length() + 1;
-    server->ipaddr = (char *) ipaddr.c_str();
+    t_server* server = new t_server;
+    server->ipaddr_len = (int)ipaddr.length() + 1;
+    server->ipaddr = (char*)ipaddr.c_str();
     server->port = ipport;
     server->type = SV_MULTMATRIX;
 
