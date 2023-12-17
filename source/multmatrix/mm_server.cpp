@@ -31,8 +31,8 @@ void sigstop(int signal)
 int main(int argc, char** argv)
 {
     // Variables del servidor
-    std::string ipaddr = "172.31.84.232";
-    int ipport = 10001, ipportkubectl = 30001;
+    std::string ipaddr = "172.31.92.183";
+    int ipport = 10001, ipportkubectl = 31001;
 
     // Inicializacion del servidor
     int socket = initServer(ipport);

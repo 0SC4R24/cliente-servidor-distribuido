@@ -6,7 +6,7 @@
 #define FM_CLIENT_PETICIONES_H
 
 #define IPBROKER "172.31.84.232"
-#define IPBROKERPORT 30000
+#define IPBROKERPORT 31000
 
 #include "../utils/socket.h"
 #include "../utils/serializacion.h"

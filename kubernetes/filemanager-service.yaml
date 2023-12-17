@@ -10,5 +10,5 @@ spec:
   ports:
     - port: 10002
       targetPort: 10002
-      nodePort: 30002
+      nodePort: 31002
   externalTrafficPolicy: Cluster

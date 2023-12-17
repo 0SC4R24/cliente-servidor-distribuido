@@ -4,7 +4,7 @@ metadata:
   name: multmatrix
   namespace: default
 spec:
-  replicas: 1
+  replicas: 3
   selector:
     matchLabels:
       app: multmatrix
@@ -13,8 +13,10 @@ spec:
       labels:
         app: multmatrix
     spec:
+      nodeSelector:
+        name: multmatrix
       containers:
         - name: kubernetes-multmatrix
-          image: docker.io/adriitoral/practica2:1.2
+          image: docker.io/adriitoral/practica2:172.31.92.183
           command: [ "sh", "/loader.sh", "mm_server" ]
           imagePullPolicy: Always

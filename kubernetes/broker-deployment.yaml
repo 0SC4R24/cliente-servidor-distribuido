@@ -13,7 +13,9 @@ spec:
       labels:
         app: broker
     spec:
+      nodeSelector:
+        name: broker
       containers:
         - name: kubernetes-broker
-          image: docker.io/adriitoral/practica2:1.0
-          command: [ "sh" , "/loader.sh", "broker" ]
+          image: docker.io/adriitoral/practica2:172.31.84.232
+          command: [ "sh", "/loader.sh", "broker" ]
