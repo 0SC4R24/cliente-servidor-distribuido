@@ -30,15 +30,9 @@ void sigstop(int signal)
 
 int main(int argc, char** argv)
 {
-    if (argc < 2)
-    {
-        std::cout << "FM_Server: Falta definir la ip." << std::endl;
-        return 1;
-    }
-
     // Variables del servidor
-    std::string ipaddr = argv[1];
-    int ipport = 10002;
+    std::string ipaddr = "172.31.84.232";
+    int ipport = 10002, ipportkubectl = 30002;
 
     // Inicializacion del servidor
     int socket = initServer(ipport);
@@ -51,7 +45,7 @@ int main(int argc, char** argv)
     t_server* server = new t_server;
     server->ipaddr_len = (int)ipaddr.length() + 1;
     server->ipaddr = (char*)ipaddr.c_str();
-    server->port = ipport;
+    server->port = ipportkubectl;
     server->type = SV_FILEMANAGER;
 
     // Registrar en broker

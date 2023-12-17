@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: filemanager
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: filemanager
+  template:
+    metadata:
+      labels:
+        app: filemanager
+    spec:
+      containers:
+        - name: kubernetes-filemanager
+          image: docker.io/adriitoral/practica2:1.2
+          command: [ "sh", "/loader.sh", "fm_server" ]
+          imagePullPolicy: Always
+          volumeMounts:
+            - mountPath: /practicas
+              name: directorio-filemanager
+      volumes:
+        - name: directorio-filemanager
+          hostPath:
+            path: /home/ubuntu/Practica2/fm_server
+            type: Directory

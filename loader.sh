@@ -1,7 +1,7 @@
 # Ejecutar el binario dependiendo del parametro que se le pase
 case $1 in
 mm_server)
-    hostname -I | xargs /practicas/mm_server
+    /practicas/mm_server
     ;;
 
 mm_client)
@@ -9,7 +9,7 @@ mm_client)
     ;;
 
 fm_server)
-    hostname -I | xargs /practicas/fm_server
+    /practicas/fm_server
     ;;
 
 fm_client)

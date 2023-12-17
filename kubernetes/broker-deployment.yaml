@@ -1,0 +1,19 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: broker
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: broker
+  template:
+    metadata:
+      labels:
+        app: broker
+    spec:
+      containers:
+        - name: kubernetes-broker
+          image: docker.io/adriitoral/practica2:1.0
+          command: [ "sh" , "/loader.sh", "broker" ]
